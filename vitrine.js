@@ -6,7 +6,7 @@ let cfg=qs.get("v")?decode(qs.get("v")):null;
 let demo=false;
 const PED=qs.get("pedido")?decode(qs.get("pedido")):null;
 if(!cfg&&PED&&PED.l)cfg={l:PED.l,m:0,w:""};
-if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:100,w:""};
+if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:(window.LOJAS[qs.get("l")]||{}).m||100,w:""};
 if(!cfg&&!location.search&&window.DEMO){cfg=Object.assign({},window.DEMO);demo=true}
 const loja=cfg&&window.LOJAS[cfg.l];
 if(!cfg||!loja||!(cfg.m>=0)){document.getElementById("main").hidden=true;document.querySelector("header").hidden=true;document.getElementById("bad").hidden=false;return}
