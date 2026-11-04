@@ -59,7 +59,9 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .panel h4{font-family:var(--display);font-weight:400;font-size:22px;margin:0;display:flex;justify-content:space-between;align-items:center}
 .x{border:none;background:none;color:var(--muted);font-size:26px;cursor:pointer}
 .items{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding-block:14px}
-.row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:4px 12px;border-bottom:1px solid var(--line);padding-bottom:10px;align-items:start}
+.th{width:56px;height:56px;object-fit:cover;border-radius:6px;background:#fff;grid-row:span 2}
+.row .qty{grid-column:2}
 .row .n{font-size:14px;min-width:0}.row small{display:block;color:var(--muted);font-size:12px}
 .row .t{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
 .qty{display:flex;align-items:center;gap:8px}

@@ -49,7 +49,8 @@ function renderCart(){
   el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price),t=un*n;tot+=t;
     const det=[c.c?"Cor "+c.c:"",sz?"Aro "+sz:""].filter(Boolean).join(" · ");
     lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);
-    return `<div class="row"><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
+    return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
+  el.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
   const msg=`Olá, ${loja.nome}! Quero fazer este pedido:\n\n${lines.join("\n")}\n\nTotal: ${brl(tot)}`;
   const num=WA.length<=11?"55"+WA:WA;
   ft.innerHTML=`<div class="total"><span>Total</span><span>${brl(tot)}</span></div><a class="wa" target="_blank" rel="noopener" href="https://wa.me/${num}?text=${encodeURIComponent(msg)}">Finalizar pelo WhatsApp</a>${WA?`<p class="waNum">WhatsApp: ${fmtWA(WA)}</p>`:""}`;
