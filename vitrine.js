@@ -17,7 +17,7 @@ let painel=false,asCli=false;
 const R=document.documentElement.style;
 R.setProperty("--hdr",loja.cor);R.setProperty("--hdr-ink",loja.texto);R.setProperty("--btn",loja.botao);R.setProperty("--btn-ink",loja.botaoTexto);
 document.title=loja.nome;
-const lg=document.getElementById("logo");lg.src=loja.logo;lg.alt=loja.nome;
+const lg=document.getElementById("logo");if(loja.logo){lg.src=loja.logo;lg.alt=loja.nome}else{lg.hidden=true;const nm=document.getElementById("nome");nm.textContent=loja.nome;nm.hidden=false}
 document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo WhatsApp";
 
 const P=window.P;P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
