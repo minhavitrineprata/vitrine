@@ -1,4 +1,5 @@
 (function(){
+const VER=((document.currentScript&&document.currentScript.src)||"").split("v=")[1]||"";
 function decode(s){try{s=s.replace(/-/g,"+").replace(/_/g,"/");return JSON.parse(decodeURIComponent(escape(atob(s.split("").reverse().join("")))))}catch(e){return null}}
 const qs=new URLSearchParams(location.search);
 let cfg=qs.get("v")?decode(qs.get("v")):null;
@@ -28,13 +29,13 @@ P.forEach(p=>p.s=norm(p.name+" "+p.colors.map(c=>c.c).join(" ")));
 const fmtWA=w=>{w=w.replace(/^55(?=\d{10,11}$)/,"");return w.length>=10?`(${w.slice(0,2)}) ${w.slice(2,w.length-4)}-${w.slice(-4)}`:w};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function loadChunk(n){if(LOADING[n])return;LOADING[n]=1;fetch("img/c"+n+".json").then(r=>r.json()).then(d=>{Object.assign(IMG,d);document.querySelectorAll("img[data-k]").forEach(fill)}).catch(()=>{LOADING[n]=0})}
+function loadChunk(n){if(LOADING[n])return;LOADING[n]=1;fetch("img/c"+n+".json?v="+VER).then(r=>r.json()).then(d=>{Object.assign(IMG,d);document.querySelectorAll("img[data-k]").forEach(fill)}).catch(()=>{LOADING[n]=0})}
 function fill(im){const k=im.dataset.k;if(IMG[k]&&im.getAttribute("src")!==IMG[k]){im.onload=()=>im.classList.add("ok");im.src=IMG[k]}}
 function list(){const nq=norm(q.trim());return P.filter(p=>(cat==="Todos"||p.cat===cat)&&(!nq||nq.split(/\s+/).every(w=>p.s.includes(w))))}
 function card(p){
   const c=p.colors[p.sel];
   const col=p.colors.length>1?`<div class="colors">${p.colors.map((x,j)=>`<button class="cbtn" data-p="${p.id}" data-c="${j}" aria-pressed="${j===p.sel}">${esc(x.c||"Padrão")}</button>`).join("")}</div>`:(c.c?`<span class="one">Cor: ${esc(c.c)}</span>`:"");
-  const sz=c.sizes.length?`<select class="sz" id="sz${p.id}" data-ps="${p.id}" aria-label="Tamanho do aro"><option value="">Tamanho do aro</option>${c.sizes.map(s=>`<option ${s===p.size?"selected":""}>${s}</option>`).join("")}</select>`:"";
+  const sz=c.sizes.length?`<select class="sz" id="sz${p.id}" data-ps="${p.id}" aria-label="Tamanho do aro"><option value="">Tamanho do aro</option>${c.sizes.map(s=>`<option ${s===p.size?"selected":""}>${s}</option>`).join("")}<option value="?" ${p.size==="?"?"selected":""}>Não tenho certeza</option></select>`:"";
   return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}<span class="price">${brl(price(c.price))}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em>${brl(price(c.price)-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
 }
 function hook(root){root.querySelectorAll("img[data-k]").forEach(im=>{fill(im);const p=P[+im.closest(".card").id.slice(4)];loadChunk(p.colors[p.sel].ch)})}
@@ -47,7 +48,7 @@ function renderCart(){
   if(!ids.length){el.innerHTML='<p class="empty">Sua sacola está vazia.</p>';ft.innerHTML="";return}
   let tot=0;const lines=[];
   el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price),t=un*n;tot+=t;
-    const det=[c.c?"Cor "+c.c:"",sz?"Aro "+sz:""].filter(Boolean).join(" · ");
+    const det=[c.c?"Cor "+c.c:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
     lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);
     return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
   el.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
