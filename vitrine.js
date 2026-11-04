@@ -20,7 +20,7 @@ document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo Whats
 
 const P=window.P;P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
 const cats=["Todos",...new Set(P.map(p=>p.cat))];
-let cat="Todos",q="",shown=48,cart={};
+let cat="Todos",q="",shown=48,cart={},LASTMSG="";
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const price=b=>Math.ceil(b*(1+margin/100))-0.1;
@@ -54,7 +54,10 @@ function renderCart(){
   el.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
   const msg=`Olá, ${loja.nome}! Quero fazer este pedido:\n\n${lines.join("\n")}\n\nTotal: ${brl(tot)}`;
   const num=WA.length<=11?"55"+WA:WA;
-  ft.innerHTML=`<div class="total"><span>Total</span><span>${brl(tot)}</span></div><a class="wa" target="_blank" rel="noopener" href="https://wa.me/${num}?text=${encodeURIComponent(msg)}">Finalizar pelo WhatsApp</a>${WA?`<p class="waNum">WhatsApp: ${fmtWA(WA)}</p>`:""}`;
+  const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const href=mob?`https://wa.me/${num}?text=${encodeURIComponent(msg)}`:`https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`;
+  LASTMSG=msg;
+  ft.innerHTML=`<div class="total"><span>Total</span><span>${brl(tot)}</span></div><a class="wa" target="_blank" rel="noopener" href="${href}">Finalizar pelo WhatsApp</a><button class="copyp" id="copyp">Copiar pedido</button>${WA?`<p class="waNum">WhatsApp: ${fmtWA(WA)}</p>`:""}`;
 }
 document.addEventListener("click",e=>{
   const t=e.target.closest("button")||e.target;
@@ -67,6 +70,7 @@ document.addEventListener("click",e=>{
   else if(t.dataset.inc){cart[t.dataset.inc]++;renderCart()}
   else if(t.dataset.dec){if(--cart[t.dataset.dec]<=0)delete cart[t.dataset.dec];renderCart()}
   else if(t.id==="more"){shown+=48;renderGrid()}
+  else if(t.id==="copyp"){const done=()=>{t.textContent="Pedido copiado ✓ Cole no WhatsApp";setTimeout(()=>t.textContent="Copiar pedido",2500)};try{navigator.clipboard.writeText(LASTMSG).then(done,()=>{prompt("Copie o pedido:",LASTMSG)})}catch(e){prompt("Copie o pedido:",LASTMSG)}}
   else if(t.id==="asCli"){asCli=true;applyPanel()}
   else if(t.id==="back"){asCli=false;applyPanel()}
   else if(t.id==="copy"){copyLink(t)}
