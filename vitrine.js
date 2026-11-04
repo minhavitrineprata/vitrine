@@ -11,7 +11,7 @@ if(!cfg&&!location.search&&window.DEMO){cfg=Object.assign({},window.DEMO);demo=t
 const loja=cfg&&window.LOJAS[cfg.l];
 if(!cfg||!loja||!(cfg.m>=0)){document.getElementById("main").hidden=true;document.querySelector("header").hidden=true;document.getElementById("bad").hidden=false;return}
 
-let margin=Math.min(1000,Math.max(0,+cfg.m)),WA=String(cfg.w||"").replace(/\D/g,"");
+let margin=Math.min(1000,Math.max(0,+cfg.m)),WA=String(cfg.w||loja.wa||"").replace(/\D/g,"");
 const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).split("").reverse().join("").replace(/\+/g,"-").replace(/\//g,"_").replace(/=+/g,"");
 let painel=false,asCli=false;
 const R=document.documentElement.style;
@@ -60,7 +60,7 @@ function renderCart(){
   const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const href=mob?`https://wa.me/${num}?text=${encodeURIComponent(msg)}`:`https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`;
   LASTMSG=msg;LASTNUM=num;
-  ft.innerHTML=`<div class="total"><span>Total</span><span>${brl(tot)}</span></div><a class="wa" id="finish" target="_blank" rel="noopener" href="${href}">Finalizar pelo WhatsApp</a><p class="tip" id="tip" hidden>Pedido copiado. Se a mensagem não aparecer no WhatsApp, é só colar na conversa.</p><button class="copyp" id="copyp">Copiar pedido</button>${WA?`<p class="waNum">WhatsApp: ${fmtWA(WA)}</p>`:""}`;
+  ft.innerHTML=`<div class="total"><span>Total</span><span>${brl(tot)}</span></div>${WA.length>=10?`<a class="wa" id="finish" target="_blank" rel="noopener" href="${href}">Finalizar pelo WhatsApp</a>`:`<p class="tip" style="color:var(--sold)">WhatsApp da loja não configurado. Copie o pedido e envie para a vendedora.</p>`}<p class="tip" id="tip" hidden>Pedido copiado. Se a mensagem não aparecer no WhatsApp, é só colar na conversa.</p><button class="copyp" id="copyp">Copiar pedido</button>${WA?`<p class="waNum">WhatsApp: ${fmtWA(WA)}</p>`:""}`;
 }
 document.addEventListener("click",e=>{
   const fin=e.target.closest("#finish");
