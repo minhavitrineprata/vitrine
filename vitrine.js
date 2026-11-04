@@ -4,6 +4,8 @@ function decode(s){try{s=s.replace(/-/g,"+").replace(/_/g,"/");return JSON.parse
 const qs=new URLSearchParams(location.search);
 let cfg=qs.get("v")?decode(qs.get("v")):null;
 let demo=false;
+const PED=qs.get("pedido")?decode(qs.get("pedido")):null;
+if(!cfg&&PED&&PED.l)cfg={l:PED.l,m:0,w:""};
 if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:100,w:""};
 if(!cfg&&!location.search&&window.DEMO){cfg=Object.assign({},window.DEMO);demo=true}
 const loja=cfg&&window.LOJAS[cfg.l];
@@ -46,13 +48,14 @@ function renderCart(){
   const ids=Object.keys(cart),el=document.getElementById("items"),ft=document.getElementById("foot");
   document.getElementById("cnt").textContent=Object.values(cart).reduce((a,b)=>a+b,0);
   if(!ids.length){el.innerHTML='<p class="empty">Sua sacola está vazia.</p>';ft.innerHTML="";return}
-  let tot=0;const lines=[];
+  let tot=0;const lines=[],its=[];
   el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price),t=un*n;tot+=t;
     const det=[c.c?"Cor "+c.c:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
-    lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);
+    lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);its.push([p.ref,c.c,sz||"",n,Math.round(un*100)]);
     return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
   el.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
-  const msg=`Olá, ${loja.nome}! Quero fazer este pedido:\n\n${lines.join("\n")}\n\nTotal: ${brl(tot)}`;
+  const purl=location.href.split("?")[0].split("#")[0]+"?pedido="+enc({l:cfg.l,i:its});
+  const msg=`Olá, ${loja.nome}! Quero fazer este pedido:\n\n${lines.join("\n")}\n\nTotal: ${brl(tot)}\n\nVer pedido com fotos: ${purl}`;
   const num=WA.length<=11?"55"+WA:WA;
   const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const href=mob?`https://wa.me/${num}?text=${encodeURIComponent(msg)}`:`https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`;
@@ -107,5 +110,19 @@ function initPanel(){
   updLink();applyPanel();
 }
 addEventListener("hashchange",()=>{if(location.hash==="#painel"&&!painel)initPanel()});
+function renderOrder(){
+  document.getElementById("open").hidden=true;
+  const its=Array.isArray(PED.i)?PED.i:[];let tot=0;
+  const rows=its.map(([ref,cn,sz,n,cents])=>{
+    const p=P.find(x=>x.ref===ref&&x.colors.some(c=>c.c===cn))||P.find(x=>x.ref===ref);
+    const c=p?(p.colors.find(c=>c.c===cn)||p.colors[0]):null;
+    const un=(+cents||0)/100,t=un*(+n||0);tot+=t;
+    const det=[cn?"Cor "+cn:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
+    if(c)loadChunk(c.ch);
+    return `<div class="orow">${c?`<img class="oth" data-k="${c.k}" alt="">`:`<div class="oth none">Sem foto</div>`}<div class="oinfo"><strong>${esc(p?p.name:"Peça "+ref)}</strong><small>REF ${esc(ref)}${det?" · "+esc(det):""}</small><small>${n}x ${brl(un)}</small></div><span class="ot">${brl(t)}</span></div>`}).join("");
+  document.getElementById("main").innerHTML=`<section class="hero"><h2>Pedido</h2><p>${its.length} ${its.length===1?"item":"itens"} · conferência com fotos</p></section><div class="olist">${rows||'<p class="empty">Pedido vazio.</p>'}</div><div class="total ototal"><span>Total</span><span>${brl(tot)}</span></div>`;
+  document.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
+}
+if(PED){document.getElementById("pbar").hidden=true;renderOrder();return}
 renderFilters();initPanel();renderGrid();renderCart();
 })();
