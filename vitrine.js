@@ -120,7 +120,8 @@ function renderOrder(){
     const det=[cn?"Cor "+cn:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
     if(c)loadChunk(c.ch);
     return `<div class="orow">${c?`<img class="oth" data-k="${c.k}" alt="">`:`<div class="oth none">Sem foto</div>`}<div class="oinfo"><strong>${esc(p?p.name:"Peça "+ref)}</strong><small>REF ${esc(ref)}${det?" · "+esc(det):""}</small><small>${n}x ${brl(un)}</small></div><span class="ot">${brl(t)}</span></div>`}).join("");
-  document.getElementById("main").innerHTML=`<section class="hero"><h2>Pedido</h2><p>${its.length} ${its.length===1?"item":"itens"} · conferência com fotos</p></section><div class="olist">${rows||'<p class="empty">Pedido vazio.</p>'}</div><div class="total ototal"><span>Total</span><span>${brl(tot)}</span></div>`;
+  document.getElementById("main").innerHTML=`<section class="hero"><h2>Pedido</h2><p>${its.length} ${its.length===1?"item":"itens"} · conferência com fotos</p></section><div class="olist">${rows||'<p class="empty">Pedido vazio.</p>'}</div><div class="total ototal"><span>Total</span><span>${brl(tot)}</span></div><button class="pdfb" id="pdfb">Salvar em PDF / Imprimir</button>`;
+  document.getElementById("pdfb").addEventListener("click",()=>window.print());
   document.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
 }
 if(PED){document.getElementById("pbar").hidden=true;renderOrder();return}
