@@ -20,7 +20,7 @@ document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo Whats
 
 const P=window.P;P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
 const cats=["Todos",...new Set(P.map(p=>p.cat))];
-let cat="Todos",q="",shown=48,cart={},LASTMSG="";
+let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="";
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const price=b=>Math.ceil(b*(1+margin/100))-0.1;
@@ -56,10 +56,23 @@ function renderCart(){
   const num=WA.length<=11?"55"+WA:WA;
   const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const href=mob?`https://wa.me/${num}?text=${encodeURIComponent(msg)}`:`https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`;
-  LASTMSG=msg;
-  ft.innerHTML=`<div class="total"><span>Total</span><span>${brl(tot)}</span></div><a class="wa" target="_blank" rel="noopener" href="${href}">Finalizar pelo WhatsApp</a><button class="copyp" id="copyp">Copiar pedido</button>${WA?`<p class="waNum">WhatsApp: ${fmtWA(WA)}</p>`:""}`;
+  LASTMSG=msg;LASTNUM=num;
+  ft.innerHTML=`<div class="total"><span>Total</span><span>${brl(tot)}</span></div><a class="wa" id="finish" target="_blank" rel="noopener" href="${href}">Finalizar pelo WhatsApp</a><p class="tip" id="tip" hidden>Pedido copiado. Se a mensagem não aparecer no WhatsApp, é só colar na conversa.</p><button class="copyp" id="copyp">Copiar pedido</button>${WA?`<p class="waNum">WhatsApp: ${fmtWA(WA)}</p>`:""}`;
 }
 document.addEventListener("click",e=>{
+  const fin=e.target.closest("#finish");
+  if(fin){
+    try{navigator.clipboard.writeText(LASTMSG).catch(()=>{})}catch(err){}
+    const tip=document.getElementById("tip");if(tip)tip.hidden=false;
+    if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      e.preventDefault();
+      const txt=encodeURIComponent(LASTMSG);
+      let left=false;const onHide=()=>{left=true};document.addEventListener("visibilitychange",onHide,{once:true});
+      location.href=`whatsapp://send?phone=${LASTNUM}&text=${txt}`;
+      setTimeout(()=>{if(!left&&!document.hidden)location.href=`https://api.whatsapp.com/send?phone=${LASTNUM}&text=${txt}`},1800);
+    }
+    return;
+  }
   const t=e.target.closest("button")||e.target;
   if(t.dataset.cat){cat=t.dataset.cat;shown=48;renderFilters();renderGrid()}
   else if(t.dataset.c!==undefined&&t.dataset.p!==undefined){const p=P[t.dataset.p];p.sel=+t.dataset.c;p.size="";rerender(p)}
