@@ -9,7 +9,7 @@ if(!cfg&&PED&&(PED.l||PED.s))cfg=Object.assign({m:0,w:""},PED.l?{l:PED.l}:{},PED
 if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:(window.LOJAS[qs.get("l")]||{}).m||100,d:(window.LOJAS[qs.get("l")]||{}).d||0,w:""};
 if(!cfg&&!location.search&&window.DEMO){cfg=Object.assign({},window.DEMO);demo=true}
 const hex=v=>/^#[0-9a-fA-F]{3,8}$/.test(v||"")?v:null;
-const loja=cfg&&(cfg.s&&typeof cfg.s==="object"?{nome:String(cfg.s.n||"Catálogo").slice(0,60),logo:/^https:\/\//.test(cfg.s.lg||"")?cfg.s.lg:"",cor:hex(cfg.s.c)||"#FFFFFF",texto:hex(cfg.s.t)||"#1E1A21",botao:hex(cfg.s.b)||"#1E1A21",botaoTexto:hex(cfg.s.bt)||"#FFFFFF",h:cfg.s.h,p:cfg.s.p}:window.LOJAS[cfg.l]);
+const loja=cfg&&(cfg.s&&typeof cfg.s==="object"?{nome:String(cfg.s.n||"Catálogo").slice(0,60),logo:/^https:\/\//.test(cfg.s.lg||"")?cfg.s.lg:"",cor:hex(cfg.s.c)||"#FFFFFF",texto:hex(cfg.s.t)||"#1E1A21",botao:hex(cfg.s.b)||"#1E1A21",botaoTexto:hex(cfg.s.bt)||"#FFFFFF",h:cfg.s.h,p:cfg.s.p,e:cfg.s.e}:window.LOJAS[cfg.l]);
 if(cfg&&!loja&&!window.__lojasRetry){window.__lojasRetry=1;const sc=document.createElement("script");sc.src="lojas.js?t="+Date.now();sc.onload=()=>{const s2=document.createElement("script");s2.src="vitrine.js?t="+Date.now();document.body.appendChild(s2)};sc.onerror=()=>{window.__lojasRetry=2};document.body.appendChild(sc);return}
 if(!cfg||!loja||!(cfg.m>=0)){document.getElementById("main").hidden=true;document.querySelector("header").hidden=true;document.getElementById("bad").hidden=false;return}
 
@@ -19,6 +19,7 @@ let painel=false,asCli=false;
 const R=document.documentElement.style;
 R.setProperty("--hdr",loja.cor);R.setProperty("--hdr-ink",loja.texto);R.setProperty("--btn",loja.botao);R.setProperty("--btn-ink",loja.botaoTexto);
 document.title=loja.nome;
+if(loja.e){const hs=document.querySelector(".hero");if(hs){const eb=document.createElement("span");eb.className="eyebrow";eb.textContent=String(loja.e).slice(0,40);hs.prepend(eb)}}
 if(loja.h||loja.p){const hs=document.querySelector(".hero");if(hs){if(loja.h)hs.querySelector("h2").textContent=String(loja.h).slice(0,90);if(loja.p)hs.querySelector("p").textContent=String(loja.p).slice(0,200)}}
 const lg=document.getElementById("logo");if(loja.logo){lg.src=loja.logo;lg.alt=loja.nome}else{lg.hidden=true;const nm=document.getElementById("nome");nm.textContent=loja.nome;nm.hidden=false}
 document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo WhatsApp";
