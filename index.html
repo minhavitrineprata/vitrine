@@ -49,6 +49,7 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .cbtn[aria-pressed="true"]{border-color:var(--btn);background:var(--btn);color:var(--btn-ink)}
 .one{font-size:12px;color:var(--muted)}
 .price{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;margin-top:auto}
+.old+.price{margin-top:0}
 .sz{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:7px;font:500 13px var(--body);width:100%}
 .sz.need{outline:2px solid var(--sold)}
 .add{border:none;background:var(--btn);color:var(--btn-ink);border-radius:6px;padding:9px;font:600 13px var(--body);cursor:pointer}
@@ -76,6 +77,10 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .ototal{max-width:720px;padding-block:16px 50px}
 .pdfb{border:none;background:var(--btn);color:var(--btn-ink);border-radius:8px;padding:13px 22px;font:700 14px var(--body);cursor:pointer;margin-bottom:50px}
 @media print{.pdfb,.cartbtn,.pbar,.backp,footer{display:none!important}body{background:#fff}.orow{break-inside:avoid;border:1px solid #ddd}.ototal{padding-bottom:0}header{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.old{font-size:12px;color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums;margin-top:auto;margin-bottom:-6px}
+.off{display:inline-block;margin-left:6px;vertical-align:2px;background:#C8102E;color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700}
+.cost em.neg{color:#C8102E}
+#dv{font-variant-numeric:tabular-nums;min-width:96px}
 .tip{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
 .copyp{display:block;width:100%;margin-top:8px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:11px;font:600 14px var(--body);cursor:pointer}
 .waNum{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 0}
@@ -86,7 +91,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
 .pbar .wrap{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;padding-block:14px}
 .pbar strong{font-family:var(--display);font-weight:400;font-size:19px}
 .pbar label{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px}
-.pbar input[type=range]{width:170px;accent-color:var(--btn)}
+.pbar input[type=range]{width:150px;accent-color:var(--btn)}
 #mv{font-variant-numeric:tabular-nums;min-width:52px}
 .pbar input[type=tel]{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:8px 10px;font:500 14px var(--body);width:170px}
 .pbtn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;padding:8px 12px;font:600 12px var(--body);cursor:pointer}
@@ -102,6 +107,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
 <div class="pbar" id="pbar" hidden><div class="wrap">
   <strong>Seu painel</strong>
   <label for="m">Minha margem <input id="m" type="range" min="50" max="500" step="10"> <span id="mv"></span></label>
+  <label for="d">Desconto na vitrine <input id="d" type="range" min="0" max="70" step="5"> <span id="dv"></span></label>
   <label for="wa">WhatsApp <input id="wa" type="tel" inputmode="numeric" placeholder="(38) 99999-9999"></label>
   <button class="pbtn" id="asCli">Ver como minha cliente</button>
   <div class="linkbox">Link da sua vitrine: <code id="mylink"></code><button class="pbtn" id="copy">Copiar link</button></div>
@@ -126,8 +132,8 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
   <div class="items" id="items"></div>
   <div id="foot"></div>
 </div></div>
-<script src="lojas.js?v=1793874577"></script>
-<script src="data.js?v=1793874577"></script>
-<script src="vitrine.js?v=1793874577"></script>
+<script src="lojas.js?v=1793884554"></script>
+<script src="data.js?v=1793884554"></script>
+<script src="vitrine.js?v=1793884554"></script>
 </body>
 </html>

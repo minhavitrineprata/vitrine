@@ -6,13 +6,13 @@ let cfg=qs.get("v")?decode(qs.get("v")):null;
 let demo=false;
 const PED=qs.get("pedido")?decode(qs.get("pedido")):null;
 if(!cfg&&PED&&PED.l)cfg={l:PED.l,m:0,w:""};
-if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:(window.LOJAS[qs.get("l")]||{}).m||100,w:""};
+if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:(window.LOJAS[qs.get("l")]||{}).m||100,d:(window.LOJAS[qs.get("l")]||{}).d||0,w:""};
 if(!cfg&&!location.search&&window.DEMO){cfg=Object.assign({},window.DEMO);demo=true}
 const loja=cfg&&window.LOJAS[cfg.l];
 if(cfg&&!loja&&!window.__lojasRetry){window.__lojasRetry=1;const sc=document.createElement("script");sc.src="lojas.js?t="+Date.now();sc.onload=()=>{const s2=document.createElement("script");s2.src="vitrine.js?t="+Date.now();document.body.appendChild(s2)};sc.onerror=()=>{window.__lojasRetry=2};document.body.appendChild(sc);return}
 if(!cfg||!loja||!(cfg.m>=0)){document.getElementById("main").hidden=true;document.querySelector("header").hidden=true;document.getElementById("bad").hidden=false;return}
 
-let margin=Math.min(1000,Math.max(0,+cfg.m)),WA=String(cfg.w||loja.wa||"").replace(/\D/g,"");
+let disc=Math.min(80,Math.max(0,+cfg.d||0)),margin=Math.min(1000,Math.max(0,+cfg.m)),WA=String(cfg.w||loja.wa||"").replace(/\D/g,"");
 const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).split("").reverse().join("").replace(/\+/g,"-").replace(/\//g,"_").replace(/=+/g,"");
 let painel=false,asCli=false;
 const R=document.documentElement.style;
@@ -26,7 +26,8 @@ const cats=["Todos",...new Set(P.map(p=>p.cat))];
 let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="";
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const price=b=>Math.ceil(b*(1+margin/100))-0.1;
+const full=b=>Math.ceil(b*(1+margin/100))-0.1;
+const price=b=>disc?Math.max(0.9,Math.ceil(full(b)*(1-disc/100))-0.1):full(b);
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 P.forEach(p=>p.s=norm(p.name+" "+p.colors.map(c=>c.c).join(" ")));
 const fmtWA=w=>{w=w.replace(/^55(?=\d{10,11}$)/,"");return w.length>=10?`(${w.slice(0,2)}) ${w.slice(2,w.length-4)}-${w.slice(-4)}`:w};
@@ -39,7 +40,7 @@ function card(p){
   const c=p.colors[p.sel];
   const col=p.colors.length>1?`<div class="colors">${p.colors.map((x,j)=>`<button class="cbtn" data-p="${p.id}" data-c="${j}" aria-pressed="${j===p.sel}">${esc(x.c||"Padrão")}</button>`).join("")}</div>`:(c.c?`<span class="one">Cor: ${esc(c.c)}</span>`:"");
   const sz=c.sizes.length?`<select class="sz" id="sz${p.id}" data-ps="${p.id}" aria-label="Tamanho do aro"><option value="">Tamanho do aro</option>${c.sizes.map(s=>`<option ${s===p.size?"selected":""}>${s}</option>`).join("")}<option value="?" ${p.size==="?"?"selected":""}>Não tenho certeza</option></select>`:"";
-  return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}<span class="price">${brl(price(c.price))}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em>${brl(price(c.price)-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
+  return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}${disc?`<span class="old">De ${brl(full(c.price))}</span>`:""}<span class="price">${disc?"Por ":""}${brl(price(c.price))}${disc?`<span class="off">-${disc}%</span>`:""}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em class="${price(c.price)-c.price<=0?"neg":""}">${brl(price(c.price)-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
 }
 function hook(root){root.querySelectorAll("img[data-k]").forEach(im=>{fill(im);const p=P[+im.closest(".card").id.slice(4)];loadChunk(p.colors[p.sel].ch)})}
 function renderGrid(){const L=list(),g=document.getElementById("grid");g.innerHTML=L.slice(0,shown).map(card).join("");hook(g);document.getElementById("more").hidden=L.length<=shown;document.getElementById("found").textContent=L.length+" peças"}
@@ -96,7 +97,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("change",e=>{if(e.target.dataset.ps!==undefined)P[e.target.dataset.ps].size=e.target.value});
 let qt;document.getElementById("q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{q=e.target.value;shown=48;renderGrid()},200)});
-function clientLink(){const base=location.href.split("?")[0].split("#")[0];return base+"?v="+enc({l:cfg.l,m:margin,w:WA?(WA.length<=11?"55"+WA:WA):""})}
+function clientLink(){const base=location.href.split("?")[0].split("#")[0];return base+"?v="+enc(Object.assign({l:cfg.l,m:margin,w:WA?(WA.length<=11?"55"+WA:WA):""},disc?{d:disc}:{}))}
 function updLink(){document.getElementById("mylink").textContent=demo?"(o link aparece aqui quando o site estiver no ar)":clientLink()}
 function copyLink(b){const t=document.getElementById("mylink").textContent;const sel=()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("mylink"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Link selecionado: copie"};
   try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copiado ✓";setTimeout(()=>b.textContent="Copiar link",1500)},sel)}catch(e){sel()}}
@@ -106,6 +107,8 @@ function initPanel(){
   if(!painel){applyPanel();return}
   const m=document.getElementById("m");m.value=margin;document.getElementById("mv").textContent="+"+margin+"%";
   document.getElementById("wa").value=WA?fmtWA(WA):"";
+  const dd=document.getElementById("d");dd.value=disc;document.getElementById("dv").textContent=disc?"-"+disc+"%":"sem desconto";
+  dd.addEventListener("input",()=>{disc=+dd.value;document.getElementById("dv").textContent=disc?"-"+disc+"%":"sem desconto";updLink();renderGrid();renderCart()});
   m.addEventListener("input",()=>{margin=+m.value;document.getElementById("mv").textContent="+"+margin+"%";updLink();renderGrid();renderCart()});
   document.getElementById("wa").addEventListener("input",e=>{WA=e.target.value.replace(/\D/g,"");updLink();renderCart()});
   updLink();applyPanel();
