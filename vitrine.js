@@ -5,10 +5,11 @@ const qs=new URLSearchParams(location.search);
 let cfg=qs.get("v")?decode(qs.get("v")):null;
 let demo=false;
 const PED=qs.get("pedido")?decode(qs.get("pedido")):null;
-if(!cfg&&PED&&PED.l)cfg={l:PED.l,m:0,w:""};
+if(!cfg&&PED&&(PED.l||PED.s))cfg=Object.assign({m:0,w:""},PED.l?{l:PED.l}:{},PED.s?{s:PED.s}:{});
 if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:(window.LOJAS[qs.get("l")]||{}).m||100,d:(window.LOJAS[qs.get("l")]||{}).d||0,w:""};
 if(!cfg&&!location.search&&window.DEMO){cfg=Object.assign({},window.DEMO);demo=true}
-const loja=cfg&&window.LOJAS[cfg.l];
+const hex=v=>/^#[0-9a-fA-F]{3,8}$/.test(v||"")?v:null;
+const loja=cfg&&(cfg.s&&typeof cfg.s==="object"?{nome:String(cfg.s.n||"Catálogo").slice(0,60),logo:/^https:\/\//.test(cfg.s.lg||"")?cfg.s.lg:"",cor:hex(cfg.s.c)||"#FFFFFF",texto:hex(cfg.s.t)||"#1E1A21",botao:hex(cfg.s.b)||"#1E1A21",botaoTexto:hex(cfg.s.bt)||"#FFFFFF",h:cfg.s.h,p:cfg.s.p}:window.LOJAS[cfg.l]);
 if(cfg&&!loja&&!window.__lojasRetry){window.__lojasRetry=1;const sc=document.createElement("script");sc.src="lojas.js?t="+Date.now();sc.onload=()=>{const s2=document.createElement("script");s2.src="vitrine.js?t="+Date.now();document.body.appendChild(s2)};sc.onerror=()=>{window.__lojasRetry=2};document.body.appendChild(sc);return}
 if(!cfg||!loja||!(cfg.m>=0)){document.getElementById("main").hidden=true;document.querySelector("header").hidden=true;document.getElementById("bad").hidden=false;return}
 
@@ -18,6 +19,7 @@ let painel=false,asCli=false;
 const R=document.documentElement.style;
 R.setProperty("--hdr",loja.cor);R.setProperty("--hdr-ink",loja.texto);R.setProperty("--btn",loja.botao);R.setProperty("--btn-ink",loja.botaoTexto);
 document.title=loja.nome;
+if(loja.h||loja.p){const hs=document.querySelector(".hero");if(hs){if(loja.h)hs.querySelector("h2").textContent=String(loja.h).slice(0,90);if(loja.p)hs.querySelector("p").textContent=String(loja.p).slice(0,200)}}
 const lg=document.getElementById("logo");if(loja.logo){lg.src=loja.logo;lg.alt=loja.nome}else{lg.hidden=true;const nm=document.getElementById("nome");nm.textContent=loja.nome;nm.hidden=false}
 document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo WhatsApp";
 
@@ -26,8 +28,9 @@ const cats=["Todos",...new Set(P.map(p=>p.cat))];
 let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="";
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const full=b=>Math.ceil(b*(1+margin/100))-0.1;
-const price=b=>disc?Math.max(0.9,Math.ceil(full(b)*(1-disc/100))-0.1):full(b);
+const r2=v=>Math.round(v*100)/100;
+const full=b=>margin===0?r2(b):Math.ceil(b*(1+margin/100))-0.1;
+const price=b=>disc?(margin===0?r2(b*(1-disc/100)):Math.max(0.9,Math.ceil(full(b)*(1-disc/100))-0.1)):full(b);
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 P.forEach(p=>p.s=norm(p.name+" "+p.colors.map(c=>c.c).join(" ")));
 const fmtWA=w=>{w=w.replace(/^55(?=\d{10,11}$)/,"");return w.length>=10?`(${w.slice(0,2)}) ${w.slice(2,w.length-4)}-${w.slice(-4)}`:w};
@@ -56,7 +59,7 @@ function renderCart(){
     lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);its.push([p.ref,c.c,sz||"",n,Math.round(un*100)]);
     return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
   el.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
-  const purl=location.href.split("?")[0].split("#")[0]+"?pedido="+enc({l:cfg.l,i:its});
+  const purl=location.href.split("?")[0].split("#")[0]+"?pedido="+enc(Object.assign(cfg.s?{s:cfg.s}:{l:cfg.l},{i:its}));
   const msg=`Olá, ${loja.nome}! Quero fazer este pedido:\n\n${lines.join("\n")}\n\nTotal: ${brl(tot)}\n\nVer pedido com fotos: ${purl}`;
   const num=WA.length<=11?"55"+WA:WA;
   const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
