@@ -144,6 +144,11 @@ function loadPeds(){
     if(!d.ok){PEDERR=d.erro==="chave"?"Este painel não tem permissão para ver pedidos. Peça o link do painel novamente.":"Não foi possível carregar os pedidos.";PEDS=[]}
     else PEDS=d.pedidos;renderPeds()}).catch(()=>{PEDERR="Sem conexão. Tente de novo em instantes.";PEDS=PEDS||[];renderPeds()});
 }
+const LKK="kau_ult_"+(cfg.l||"");
+function lastKau(){try{return localStorage.getItem(LKK)||""}catch(e){return ""}}
+function openKau(txt){try{navigator.clipboard.writeText(txt).catch(()=>{})}catch(err){}const t=encodeURIComponent(txt);
+  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))location.href=`https://wa.me/${KAU_WA}?text=${t}`;
+  else{const a=document.createElement("a");a.href=`https://web.whatsapp.com/send?phone=${KAU_WA}&text=${t}`;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}}
 function kauItems(){const out=[];(PEDS||[]).forEach(o=>{if(o.status==="Cancelado")return;o.itens.forEach(it=>{if(it.destino==="Encomendar")out.push(Object.assign({pid:o.id},it))})});return out}
 function kauMsg(list){
   const g={};list.forEach(it=>{const k=it.ref+"|"+it.cor;(g[k]=g[k]||{ref:it.ref,nome:it.nome,cor:it.cor,aros:{},qtd:0,val:0}).qtd+=it.qtd;g[k].val+=it.qtd*it.atacado;if(it.aro){const a=it.aro==="?"?"a confirmar":String(it.aro).replace(/^0/,"");g[k].aros[a]=(g[k].aros[a]||0)+it.qtd}});
@@ -164,6 +169,7 @@ function renderPeds(loading){
     <details><summary>Ver itens</summary><pre class="kb-pre">${esc(km.txt)}</pre></details>
     <button class="add kb-send" id="kausend" ${KAU_WA?"":"disabled"}>Enviar pedido para a Kau pelo WhatsApp</button>`
     :`<p class="kb-msg">Marque <b>Encomendar</b> nas peças que você não tem. Elas se juntam aqui num pedido só para a Kau.</p>`;
+  if(lastKau())kb.innerHTML+=`<p class="kb-msg">O WhatsApp abre com o pedido escrito: toque em <b>enviar</b> para ele chegar na Kau.</p><button class="pbtn" id="kauagain">Reenviar último pedido para a Kau</button>`;
   if(PEDERR){box.innerHTML=`<p class="empty">${esc(PEDERR)}</p>`;return}
   if(!PEDS.length){box.innerHTML='<p class="empty">Nenhum pedido ainda. Quando uma cliente finalizar pela sua vitrine, o pedido aparece aqui.</p>';return}
   const ST=["Novo","Confirmado","Pago","Entregue","Cancelado"];
@@ -188,10 +194,10 @@ document.addEventListener("click",e=>{
     const txt=encodeURIComponent(km.txt);
     post({a:"kau",linhas:ks.map(i=>i.linha),texto:km.txt,total:Math.round(km.tot*100)/100,ids:km.ids.join(", ")});
     ks.forEach(i=>{PEDS.forEach(o=>o.itens.forEach(x=>{if(x.linha===i.linha){x.destino="Enviado à Kau";x.enviado=new Date().toISOString()}}))});renderPeds();
-    try{navigator.clipboard.writeText(km.txt).catch(()=>{})}catch(err){}
-    if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))location.href=`https://wa.me/${KAU_WA}?text=${txt}`;
-    else{const a=document.createElement("a");a.href=`https://web.whatsapp.com/send?phone=${KAU_WA}&text=${txt}`;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
+    try{localStorage.setItem(LKK,km.txt)}catch(err){}renderPeds();
+    openKau(km.txt);
   }
+  else if(t.id==="kauagain"){const m=lastKau();if(m&&KAU_WA)openKau(m)}
 });
 document.addEventListener("change",e=>{if(e.target.classList.contains("pst")){const o=(PEDS||[]).find(x=>x.id===e.target.dataset.pid);if(o){o.status=e.target.value;renderPeds()}post({a:"status",id:e.target.dataset.pid,status:e.target.value})}});
 
