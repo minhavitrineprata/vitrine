@@ -7,3 +7,5 @@ window.LOJAS={
   "essenciale":{"nome":"Essenciale","wa":"5554996031004","m":300,"logo":"logos/essenciale.jpg","cor":"#000000","texto":"#E2B45A","botao":"#E2B45A","botaoTexto":"#000000"}
 };
 window.DEMO=null;
+window.API="";
+window.KAU_WA="5554996986596";

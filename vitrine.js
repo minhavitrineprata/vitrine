@@ -26,7 +26,9 @@ document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo Whats
 
 const P=window.P;P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
 const cats=["Todos",...new Set(P.map(p=>p.cat))];
-let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="",aro="";
+let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="",aro="",LASTSIG="",PEDID="",LASTREG=null,SENT="";
+const API=window.API||"",KEY=qs.get("k")||"";
+function registrar(){if(!API||!cfg.l||!LASTREG||SENT===LASTREG.id)return;SENT=LASTREG.id;const b=JSON.stringify(LASTREG);try{if(navigator.sendBeacon&&navigator.sendBeacon(API,new Blob([b],{type:"text/plain"})))return}catch(e){}try{fetch(API,{method:"POST",body:b,mode:"no-cors",keepalive:true})}catch(e){}}
 const AROS=[...new Set(P.filter(p=>p.cat==="Anéis").flatMap(p=>p.colors.flatMap(c=>c.sizes)))].sort((a,b)=>a-b);
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -60,14 +62,16 @@ function renderCart(){
   const ids=Object.keys(cart),el=document.getElementById("items"),ft=document.getElementById("foot");
   document.getElementById("cnt").textContent=Object.values(cart).reduce((a,b)=>a+b,0);
   if(!ids.length){el.innerHTML='<p class="empty">Sua sacola está vazia.</p>';ft.innerHTML="";return}
-  let tot=0;const lines=[],its=[];
+  let tot=0;const lines=[],its=[],reg=[];
   el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price),t=un*n;tot+=t;
     const det=[c.c?"Cor "+c.c:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
-    lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);its.push([p.ref,c.c,sz||"",n,Math.round(un*100)]);
+    lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);its.push([p.ref,c.c,sz||"",n,Math.round(un*100)]);reg.push([p.ref,p.name,c.c,sz==="?"?"?":(sz||""),n,un,c.price]);
     return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
   el.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
   const purl=location.href.split("?")[0].split("#")[0]+"?pedido="+enc(Object.assign(cfg.s?{s:cfg.s}:{l:cfg.l},{i:its}));
-  const msg=`Olá, ${loja.nome}! Quero fazer este pedido:\n\n${lines.join("\n")}\n\nTotal: ${brl(tot)}\n\nVer pedido com fotos: ${purl}`;
+  const sig=JSON.stringify(reg);if(sig!==LASTSIG){LASTSIG=sig;PEDID=(Date.now().toString(36).slice(-5)+Math.random().toString(36).slice(2,5)).toUpperCase()}
+  LASTREG={a:"pedido",l:cfg.l,id:PEDID,itens:reg,total:Math.round(tot*100)/100};
+  const msg=`Olá, ${loja.nome}! Quero fazer este pedido (nº ${PEDID}):\n\n${lines.join("\n")}\n\nTotal: ${brl(tot)}\n\nVer pedido com fotos: ${purl}`;
   const num=WA.length<=11?"55"+WA:WA;
   const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const href=mob?`https://wa.me/${num}?text=${encodeURIComponent(msg)}`:`https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`;
@@ -77,6 +81,7 @@ function renderCart(){
 document.addEventListener("click",e=>{
   const fin=e.target.closest("#finish");
   if(fin){
+    registrar();
     try{navigator.clipboard.writeText(LASTMSG).catch(()=>{})}catch(err){}
     const tip=document.getElementById("tip");if(tip)tip.hidden=false;
     if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
@@ -98,7 +103,7 @@ document.addEventListener("click",e=>{
   else if(t.dataset.inc){cart[t.dataset.inc]++;renderCart()}
   else if(t.dataset.dec){if(--cart[t.dataset.dec]<=0)delete cart[t.dataset.dec];renderCart()}
   else if(t.id==="more"){shown+=48;renderGrid()}
-  else if(t.id==="copyp"){const done=()=>{t.textContent="Pedido copiado ✓ Cole no WhatsApp";setTimeout(()=>t.textContent="Copiar pedido",2500)};try{navigator.clipboard.writeText(LASTMSG).then(done,()=>{prompt("Copie o pedido:",LASTMSG)})}catch(e){prompt("Copie o pedido:",LASTMSG)}}
+  else if(t.id==="copyp"){registrar();const done=()=>{t.textContent="Pedido copiado ✓ Cole no WhatsApp";setTimeout(()=>t.textContent="Copiar pedido",2500)};try{navigator.clipboard.writeText(LASTMSG).then(done,()=>{prompt("Copie o pedido:",LASTMSG)})}catch(e){prompt("Copie o pedido:",LASTMSG)}}
   else if(t.id==="asCli"){asCli=true;applyPanel()}
   else if(t.id==="back"){asCli=false;applyPanel()}
   else if(t.id==="copy"){copyLink(t)}
@@ -124,8 +129,72 @@ function initPanel(){
   m.addEventListener("input",()=>{margin=+m.value;document.getElementById("mv").textContent="+"+margin+"%";updLink();renderGrid();renderCart()});
   document.getElementById("wa").addEventListener("input",e=>{WA=e.target.value.replace(/\D/g,"");updLink();renderCart()});
   updLink();applyPanel();
+  const mp=document.getElementById("mypeds");if(mp)mp.hidden=!(API&&KEY&&cfg.l);
 }
 addEventListener("hashchange",()=>{if(location.hash==="#painel"&&!painel)initPanel()});
+/* ---- Meus pedidos (painel da revendedora) ---- */
+let PEDS=null,PEDERR="";
+const KAU_WA=window.KAU_WA||"";
+const fmtD=iso=>{const d=new Date(iso);return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+function thumbFor(ref,cor){const p=P.find(x=>x.ref===ref);if(!p)return null;const c=p.colors.find(c=>c.c===cor)||p.colors[0];loadChunk(c.ch);return c.k}
+function post(o){return fetch(API,{method:"POST",body:JSON.stringify(Object.assign({l:cfg.l,k:KEY},o))}).then(r=>r.json()).catch(()=>({ok:false}))}
+function loadPeds(){
+  PEDERR="";renderPeds(true);
+  fetch(API+"?a=list&l="+encodeURIComponent(cfg.l)+"&k="+encodeURIComponent(KEY)).then(r=>r.json()).then(d=>{
+    if(!d.ok){PEDERR=d.erro==="chave"?"Este painel não tem permissão para ver pedidos. Peça o link do painel novamente.":"Não foi possível carregar os pedidos.";PEDS=[]}
+    else PEDS=d.pedidos;renderPeds()}).catch(()=>{PEDERR="Sem conexão. Tente de novo em instantes.";PEDS=PEDS||[];renderPeds()});
+}
+function kauItems(){const out=[];(PEDS||[]).forEach(o=>{if(o.status==="Cancelado")return;o.itens.forEach(it=>{if(it.destino==="Encomendar")out.push(Object.assign({pid:o.id},it))})});return out}
+function kauMsg(list){
+  const g={};list.forEach(it=>{const k=it.ref+"|"+it.cor;(g[k]=g[k]||{ref:it.ref,nome:it.nome,cor:it.cor,aros:{},qtd:0,val:0}).qtd+=it.qtd;g[k].val+=it.qtd*it.atacado;if(it.aro){const a=it.aro==="?"?"a confirmar":String(it.aro).replace(/^0/,"");g[k].aros[a]=(g[k].aros[a]||0)+it.qtd}});
+  let tot=0;const lines=Object.values(g).map(x=>{tot+=x.val;const aj=/alta joalheria/i.test(x.nome)?" ALTA JOALHERIA":"";
+    const ar=Object.keys(x.aros).length?" "+Object.entries(x.aros).sort((a,b)=>(+a[0]||99)-(+b[0]||99)).map(([a,q])=>q+":"+a).join("/ "):"";
+    return `${x.ref}${aj}${x.cor?" "+x.cor:""}${ar} (${x.qtd} pç) ${brl(x.val)}\n${x.nome}`});
+  const ids=[...new Set(list.map(i=>i.pid))];
+  return {tot,ids,txt:`Pedido de atacado: ${loja.nome}\n\n${lines.join("\n\n")}\n\nTotal atacado: ${brl(tot)}\nPedidos das clientes: ${ids.map(i=>"nº "+i).join(", ")}`};
+}
+function renderPeds(loading){
+  const v=document.getElementById("pedview");if(!v||v.hidden)return;
+  const box=document.getElementById("pedlist"),kb=document.getElementById("kaubar");
+  if(loading&&!PEDS){box.innerHTML='<p class="empty">Carregando pedidos…</p>';kb.innerHTML="";return}
+  const ks=kauItems(),km=kauMsg(ks),MIN=700,falta=Math.max(0,MIN-km.tot),pct=Math.min(100,km.tot/MIN*100);
+  kb.innerHTML=ks.length?`<div class="kb-top"><strong>Pedido para a Kau</strong><span>${ks.reduce((a,i)=>a+i.qtd,0)} peças · ${brl(km.tot)}</span></div>
+    <div class="kb-bar"><span style="width:${pct}%"></span></div>
+    <p class="kb-msg">${falta?`Faltam <b>${brl(falta)}</b> para o pedido mínimo de R$700.`:"Pedido mínimo atingido."}</p>
+    <details><summary>Ver itens</summary><pre class="kb-pre">${esc(km.txt)}</pre></details>
+    <button class="add kb-send" id="kausend" ${KAU_WA?"":"disabled"}>Enviar pedido para a Kau pelo WhatsApp</button>`
+    :`<p class="kb-msg">Marque <b>Encomendar</b> nas peças que você não tem. Elas se juntam aqui num pedido só para a Kau.</p>`;
+  if(PEDERR){box.innerHTML=`<p class="empty">${esc(PEDERR)}</p>`;return}
+  if(!PEDS.length){box.innerHTML='<p class="empty">Nenhum pedido ainda. Quando uma cliente finalizar pela sua vitrine, o pedido aparece aqui.</p>';return}
+  const ST=["Novo","Confirmado","Pago","Entregue","Cancelado"];
+  box.innerHTML=PEDS.map(o=>`<article class="pcard${o.status==="Cancelado"?" canc":""}"><header><div><strong>Pedido nº ${esc(o.id)}</strong><small>${fmtD(o.data)} · ${brl(o.total)}</small></div>
+    <select class="pst" data-pid="${esc(o.id)}" aria-label="Status do pedido">${ST.map(s=>`<option ${s===o.status?"selected":""}>${s}</option>`).join("")}</select></header>
+    ${o.itens.map(it=>{const k=thumbFor(it.ref,it.cor);const sent=it.destino==="Enviado à Kau";
+      return `<div class="pit">${k?`<img class="th ok" data-k="${k}" alt="">`:'<div class="th"></div>'}<div class="pin"><span>${it.qtd}x ${esc(it.nome)}</span><small>${esc([it.cor?"Cor "+it.cor:"",it.aro?(it.aro==="?"?"Aro: não tem certeza":"Aro "+String(it.aro).replace(/^0/,"")):""].filter(Boolean).join(" · "))}</small>
+      ${sent?`<em class="sentk">Enviado à Kau ✓</em>`:`<div class="seg2"><button data-ln="${it.linha}" data-dest="Tenho" aria-pressed="${it.destino==="Tenho"}">Tenho</button><button data-ln="${it.linha}" data-dest="Encomendar" aria-pressed="${it.destino==="Encomendar"}">Encomendar</button></div>`}</div></div>`}).join("")}</article>`).join("");
+  box.querySelectorAll("img[data-k]").forEach(fill);
+}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.id==="mypeds"){document.getElementById("pedview").hidden=false;loadPeds()}
+  else if(t.id==="pedclose"){document.getElementById("pedview").hidden=true}
+  else if(t.id==="pedreload"){loadPeds()}
+  else if(t.dataset.ln&&t.dataset.dest){
+    const ln=+t.dataset.ln;let it=null;(PEDS||[]).forEach(o=>o.itens.forEach(x=>{if(x.linha===ln)it=x}));if(!it)return;
+    const novo=it.destino===t.dataset.dest?"Pendente":t.dataset.dest;it.destino=novo;renderPeds();post({a:"destino",mud:[[ln,novo]]})}
+  else if(t.id==="kausend"){
+    const ks=kauItems();if(!ks.length||!KAU_WA)return;const km=kauMsg(ks);
+    if(km.tot<700&&!t.dataset.ok){t.dataset.ok=1;t.textContent=`Abaixo de R$700. Toque de novo para enviar mesmo assim`;return}
+    const txt=encodeURIComponent(km.txt);
+    post({a:"kau",linhas:ks.map(i=>i.linha),texto:km.txt,total:Math.round(km.tot*100)/100,ids:km.ids.join(", ")});
+    ks.forEach(i=>{PEDS.forEach(o=>o.itens.forEach(x=>{if(x.linha===i.linha){x.destino="Enviado à Kau";x.enviado=new Date().toISOString()}}))});renderPeds();
+    try{navigator.clipboard.writeText(km.txt).catch(()=>{})}catch(err){}
+    if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))location.href=`https://wa.me/${KAU_WA}?text=${txt}`;
+    else{const a=document.createElement("a");a.href=`https://web.whatsapp.com/send?phone=${KAU_WA}&text=${txt}`;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
+  }
+});
+document.addEventListener("change",e=>{if(e.target.classList.contains("pst")){const o=(PEDS||[]).find(x=>x.id===e.target.dataset.pid);if(o){o.status=e.target.value;renderPeds()}post({a:"status",id:e.target.dataset.pid,status:e.target.value})}});
+
 function renderOrder(){
   document.getElementById("open").hidden=true;
   const its=Array.isArray(PED.i)?PED.i:[];let tot=0;
