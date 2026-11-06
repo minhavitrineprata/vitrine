@@ -26,7 +26,8 @@ document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo Whats
 
 const P=window.P;P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
 const cats=["Todos",...new Set(P.map(p=>p.cat))];
-let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="";
+let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="",aro="";
+const AROS=[...new Set(P.filter(p=>p.cat==="Anéis").flatMap(p=>p.colors.flatMap(c=>c.sizes)))].sort((a,b)=>a-b);
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const r2=v=>Math.round(v*100)/100;
@@ -39,7 +40,11 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 
 function loadChunk(n){if(LOADING[n])return;LOADING[n]=1;fetch("img/c"+n+".json?v="+VER).then(r=>r.json()).then(d=>{Object.assign(IMG,d);document.querySelectorAll("img[data-k]").forEach(fill)}).catch(()=>{LOADING[n]=0})}
 function fill(im){const k=im.dataset.k;if(IMG[k]&&im.getAttribute("src")!==IMG[k]){im.onload=()=>im.classList.add("ok");im.src=IMG[k]}}
-function list(){const nq=norm(q.trim());return P.filter(p=>(cat==="Todos"||p.cat===cat)&&(!nq||nq.split(/\s+/).every(w=>p.s.includes(w))))}
+function list(){const nq=norm(q.trim());return P.filter(p=>{
+  if(!(cat==="Todos"||p.cat===cat))return false;
+  if(nq&&!nq.split(/\s+/).every(w=>p.s.includes(w)))return false;
+  if(aro){if(p.cat!=="Anéis")return false;const j=p.colors.findIndex(c=>c.sizes.includes(aro));if(j<0)return false;if(!p.colors[p.sel].sizes.includes(aro)){p.sel=j}if(!p.size||p.size==="?")p.size=aro}
+  return true})}
 function card(p){
   const c=p.colors[p.sel];
   const col=p.colors.length>1?`<div class="colors">${p.colors.map((x,j)=>`<button class="cbtn" data-p="${p.id}" data-c="${j}" aria-pressed="${j===p.sel}">${esc(x.c||"Padrão")}</button>`).join("")}</div>`:(c.c?`<span class="one">Cor: ${esc(c.c)}</span>`:"");
@@ -49,7 +54,8 @@ function card(p){
 function hook(root){root.querySelectorAll("img[data-k]").forEach(im=>{fill(im);const p=P[+im.closest(".card").id.slice(4)];loadChunk(p.colors[p.sel].ch)})}
 function renderGrid(){const L=list(),g=document.getElementById("grid");g.innerHTML=L.slice(0,shown).map(card).join("");hook(g);document.getElementById("more").hidden=L.length<=shown;document.getElementById("found").textContent=L.length+" peças"}
 function rerender(p){const el=document.getElementById("card"+p.id);if(!el)return;const t=document.createElement("div");t.innerHTML=card(p);el.replaceWith(t.firstChild);hook(document.getElementById("card"+p.id))}
-function renderFilters(){document.getElementById("filters").innerHTML=cats.map(c=>`<button class="chip" aria-pressed="${c===cat}" data-cat="${c}">${c}</button>`).join("")}
+function renderFilters(){document.getElementById("filters").innerHTML=cats.map(c=>`<button class="chip" aria-pressed="${c===cat}" data-cat="${c}">${c}</button>`).join("");
+  const w=document.getElementById("arowrap");if(w)w.hidden=!AROS.length||(cat!=="Todos"&&cat!=="Anéis")}
 function renderCart(){
   const ids=Object.keys(cart),el=document.getElementById("items"),ft=document.getElementById("foot");
   document.getElementById("cnt").textContent=Object.values(cart).reduce((a,b)=>a+b,0);
@@ -83,7 +89,7 @@ document.addEventListener("click",e=>{
     return;
   }
   const t=e.target.closest("button")||e.target;
-  if(t.dataset.cat){cat=t.dataset.cat;shown=48;renderFilters();renderGrid()}
+  if(t.dataset.cat){cat=t.dataset.cat;if(aro&&cat!=="Anéis"&&cat!=="Todos"){P.forEach(p=>{if(p.size===aro)p.size=""});aro="";const as=document.getElementById("aro");if(as)as.value=""}shown=48;renderFilters();renderGrid()}
   else if(t.dataset.c!==undefined&&t.dataset.p!==undefined){const p=P[t.dataset.p];p.sel=+t.dataset.c;p.size="";rerender(p)}
   else if(t.classList.contains("add")){
     const p=P[t.dataset.id],c=p.colors[p.sel];
@@ -100,6 +106,8 @@ document.addEventListener("click",e=>{
   else if(t.id==="close"||e.target.id==="drawer"){document.getElementById("drawer").hidden=true}
 });
 document.addEventListener("change",e=>{if(e.target.dataset.ps!==undefined)P[e.target.dataset.ps].size=e.target.value});
+(function(){const sel=document.getElementById("aro");if(!sel)return;sel.innerHTML='<option value="">Todos os tamanhos</option>'+AROS.map(a=>`<option value="${a}">Aro ${a}</option>`).join("");
+  sel.addEventListener("change",()=>{const prev=aro;aro=sel.value;if(aro){cat="Anéis";P.forEach(p=>{if(p.cat==="Anéis"&&(p.size===prev||!p.size))p.size=""})}else{P.forEach(p=>{if(p.size===prev)p.size=""})}shown=48;renderFilters();renderGrid()})})();
 let qt;document.getElementById("q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{q=e.target.value;shown=48;renderGrid()},200)});
 function clientLink(){const base=location.href.split("?")[0].split("#")[0];return base+"?v="+enc(Object.assign({l:cfg.l,m:margin,w:WA?(WA.length<=11?"55"+WA:WA):""},disc?{d:disc}:{}))}
 function updLink(){document.getElementById("mylink").textContent=demo?"(o link aparece aqui quando o site estiver no ar)":clientLink()}

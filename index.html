@@ -82,6 +82,8 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .cost em.neg{color:#C8102E}
 #dv{font-variant-numeric:tabular-nums;min-width:96px}
 .eyebrow{display:inline-block;margin-bottom:10px;background:var(--btn);color:var(--btn-ink);border-radius:999px;padding:5px 14px;font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase}
+.arowrap{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink)}
+.arosel{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:9px 14px;font:500 14px var(--body)}
 .tip{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
 .copyp{display:block;width:100%;margin-top:8px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:11px;font:600 14px var(--body);cursor:pointer}
 .waNum{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 0}
@@ -121,7 +123,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
 </div></header>
 <main class="wrap" id="main">
   <section class="hero"><h2>Joias em prata para todos os momentos</h2><p>Escolha suas peças, monte a sacola e finalize comigo pelo WhatsApp.</p></section>
-  <div class="tools"><input class="search" id="q" type="search" placeholder="Buscar peça, ex.: ponto de luz, coração, argola" aria-label="Buscar peça"><span class="found" id="found"></span></div>
+  <div class="tools"><input class="search" id="q" type="search" placeholder="Buscar peça, ex.: ponto de luz, coração, argola" aria-label="Buscar peça"><label class="arowrap" id="arowrap" for="aro">Tamanho do anel <select id="aro" class="arosel"></select></label><span class="found" id="found"></span></div>
   <div class="filters" id="filters"></div>
   <div class="grid" id="grid"></div>
   <button class="more" id="more" hidden>Ver mais peças</button>
@@ -133,8 +135,8 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
   <div class="items" id="items"></div>
   <div id="foot"></div>
 </div></div>
-<script src="lojas.js?v=1793969497"></script>
-<script src="data.js?v=1793969497"></script>
-<script src="vitrine.js?v=1793969497"></script>
+<script src="lojas.js?v=1793970360"></script>
+<script src="data.js?v=1793970360"></script>
+<script src="vitrine.js?v=1793970360"></script>
 </body>
 </html>
