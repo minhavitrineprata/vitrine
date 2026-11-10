@@ -13,6 +13,7 @@ const loja=cfg&&(cfg.s&&typeof cfg.s==="object"?{nome:String(cfg.s.n||"Catálogo
 if(cfg&&!loja&&!window.__lojasRetry){window.__lojasRetry=1;const sc=document.createElement("script");sc.src="lojas.js?t="+Date.now();sc.onload=()=>{const s2=document.createElement("script");s2.src="vitrine.js?t="+Date.now();document.body.appendChild(s2)};sc.onerror=()=>{window.__lojasRetry=2};document.body.appendChild(sc);return}
 if(!cfg||!loja||!(cfg.m>=0)){document.getElementById("main").hidden=true;document.querySelector("header").hidden=true;document.getElementById("bad").hidden=false;return}
 
+let MC=(cfg.mc&&typeof cfg.mc==="object")?Object.fromEntries(Object.entries(cfg.mc).filter(([k,v])=>typeof k==="string"&&isFinite(+v)).map(([k,v])=>[k,Math.min(1000,Math.max(0,+v))])):{};
 let disc=Math.min(80,Math.max(0,+cfg.d||0)),margin=Math.min(1000,Math.max(0,+cfg.m)),WA=String(cfg.w||loja.wa||"").replace(/\D/g,"");
 const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).split("").reverse().join("").replace(/\+/g,"-").replace(/\//g,"_").replace(/=+/g,"");
 let painel=false,asCli=false;
@@ -33,8 +34,9 @@ const AROS=[...new Set(P.filter(p=>p.cat==="Anéis").flatMap(p=>p.colors.flatMap
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const r2=v=>Math.round(v*100)/100;
-const full=b=>margin===0?r2(b):Math.ceil(b*(1+margin/100))-0.1;
-const price=b=>disc?(margin===0?r2(b*(1-disc/100)):Math.max(0.9,Math.ceil(full(b)*(1-disc/100))-0.1)):full(b);
+const mg=cat=>(cat&&MC[cat]!=null)?MC[cat]:margin;
+const full=(b,cat)=>{const m=mg(cat);return m===0?r2(b):Math.ceil(b*(1+m/100))-0.1};
+const price=(b,cat)=>disc?(mg(cat)===0?r2(b*(1-disc/100)):Math.max(0.9,Math.ceil(full(b,cat)*(1-disc/100))-0.1)):full(b,cat);
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 P.forEach(p=>p.s=norm(p.name+" "+p.colors.map(c=>c.c).join(" ")));
 const fmtWA=w=>{w=w.replace(/^55(?=\d{10,11}$)/,"");return w.length>=10?`(${w.slice(0,2)}) ${w.slice(2,w.length-4)}-${w.slice(-4)}`:w};
@@ -51,7 +53,7 @@ function card(p){
   const c=p.colors[p.sel];
   const col=p.colors.length>1?`<div class="colors">${p.colors.map((x,j)=>`<button class="cbtn" data-p="${p.id}" data-c="${j}" aria-pressed="${j===p.sel}">${esc(x.c||"Padrão")}</button>`).join("")}</div>`:(c.c?`<span class="one">Cor: ${esc(c.c)}</span>`:"");
   const sz=c.sizes.length?`<select class="sz" id="sz${p.id}" data-ps="${p.id}" aria-label="Tamanho do aro"><option value="">Tamanho do aro</option>${c.sizes.map(s=>`<option ${s===p.size?"selected":""}>${s}</option>`).join("")}<option value="?" ${p.size==="?"?"selected":""}>Não tenho certeza</option></select>`:"";
-  return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}${disc?`<span class="old">De ${brl(full(c.price))}</span>`:""}<span class="price">${disc?"Por ":""}${brl(price(c.price))}${disc?`<span class="off">-${disc}%</span>`:""}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em class="${price(c.price)-c.price<=0?"neg":""}">${brl(price(c.price)-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
+  return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}${disc?`<span class="old">De ${brl(full(c.price,p.cat))}</span>`:""}<span class="price">${disc?"Por ":""}${brl(price(c.price,p.cat))}${disc?`<span class="off">-${disc}%</span>`:""}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em class="${price(c.price,p.cat)-c.price<=0?"neg":""}">${brl(price(c.price,p.cat)-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
 }
 function hook(root){root.querySelectorAll("img[data-k]").forEach(im=>{fill(im);const p=P[+im.closest(".card").id.slice(4)];loadChunk(p.colors[p.sel].ch)})}
 function renderGrid(){const L=list(),g=document.getElementById("grid");g.innerHTML=L.slice(0,shown).map(card).join("");hook(g);document.getElementById("more").hidden=L.length<=shown;document.getElementById("found").textContent=L.length+" peças"}
@@ -63,7 +65,7 @@ function renderCart(){
   document.getElementById("cnt").textContent=Object.values(cart).reduce((a,b)=>a+b,0);
   if(!ids.length){el.innerHTML='<p class="empty">Sua sacola está vazia.</p>';ft.innerHTML="";return}
   let tot=0;const lines=[],its=[],reg=[];
-  el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price),t=un*n;tot+=t;
+  el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price,p.cat),t=un*n;tot+=t;
     const det=[c.c?"Cor "+c.c:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
     lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);its.push([p.ref,c.c,sz||"",n,Math.round(un*100)]);reg.push([p.ref,p.name,c.c,sz==="?"?"?":(sz||""),n,un,c.price]);
     return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
@@ -114,7 +116,7 @@ document.addEventListener("change",e=>{if(e.target.dataset.ps!==undefined)P[e.ta
 (function(){const sel=document.getElementById("aro");if(!sel)return;sel.innerHTML='<option value="">Todos os tamanhos</option>'+AROS.map(a=>`<option value="${a}">Aro ${a}</option>`).join("");
   sel.addEventListener("change",()=>{const prev=aro;aro=sel.value;if(aro){cat="Anéis";P.forEach(p=>{if(p.cat==="Anéis"&&(p.size===prev||!p.size))p.size=""})}else{P.forEach(p=>{if(p.size===prev)p.size=""})}shown=48;renderFilters();renderGrid()})})();
 let qt;document.getElementById("q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{q=e.target.value;shown=48;renderGrid()},200)});
-function clientLink(){const base=location.href.split("?")[0].split("#")[0];return base+"?v="+enc(Object.assign({l:cfg.l,m:margin,w:WA?(WA.length<=11?"55"+WA:WA):""},disc?{d:disc}:{}))}
+function clientLink(){const base=location.href.split("?")[0].split("#")[0];return base+"?v="+enc(Object.assign({l:cfg.l,m:margin,w:WA?(WA.length<=11?"55"+WA:WA):""},disc?{d:disc}:{},Object.keys(MC).length?{mc:MC}:{}))}
 function updLink(){document.getElementById("mylink").textContent=demo?"(o link aparece aqui quando o site estiver no ar)":clientLink()}
 function copyLink(b){const t=document.getElementById("mylink").textContent;const sel=()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("mylink"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Link selecionado: copie"};
   try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copiado ✓";setTimeout(()=>b.textContent="Copiar link",1500)},sel)}catch(e){sel()}}
@@ -126,7 +128,13 @@ function initPanel(){
   document.getElementById("wa").value=WA?fmtWA(WA):"";
   const dd=document.getElementById("d");dd.value=disc;document.getElementById("dv").textContent=disc?"-"+disc+"%":"sem desconto";
   dd.addEventListener("input",()=>{disc=+dd.value;document.getElementById("dv").textContent=disc?"-"+disc+"%":"sem desconto";updLink();renderGrid();renderCart()});
-  m.addEventListener("input",()=>{margin=+m.value;document.getElementById("mv").textContent="+"+margin+"%";updLink();renderGrid();renderCart()});
+  m.addEventListener("input",()=>{margin=+m.value;document.getElementById("mv").textContent="+"+margin+"%";renderMC();updLink();renderGrid();renderCart()});
+  const mcb=document.getElementById("mcbox");
+  function renderMC(){if(!mcb)return;mcb.innerHTML=cats.filter(c=>c!=="Todos").map(c=>{const on=MC[c]!=null,v=on?MC[c]:margin;
+    return `<div class="mcrow"><label class="mcchk"><input type="checkbox" data-mcon="${esc(c)}" ${on?"checked":""}> ${esc(c)}</label><input type="range" min="50" max="500" step="10" value="${v}" data-mc="${esc(c)}" ${on?"":"disabled"} aria-label="Margem de ${esc(c)}"><span class="mcv">${on?"+"+v+"%":"igual à geral"}</span></div>`}).join("")}
+  if(mcb){renderMC();
+    mcb.addEventListener("input",e=>{const c=e.target.dataset.mc;if(c==null)return;MC[c]=+e.target.value;e.target.nextElementSibling.textContent="+"+MC[c]+"%";updLink();renderGrid();renderCart()});
+    mcb.addEventListener("change",e=>{const c=e.target.dataset.mcon;if(c==null)return;if(e.target.checked)MC[c]=margin;else delete MC[c];renderMC();updLink();renderGrid();renderCart()})}
   document.getElementById("wa").addEventListener("input",e=>{WA=e.target.value.replace(/\D/g,"");updLink();renderCart()});
   updLink();applyPanel();
   const mp=document.getElementById("mypeds");if(mp)mp.hidden=!(API&&KEY&&cfg.l);

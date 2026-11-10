@@ -103,6 +103,11 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .seg2{display:flex;gap:6px;flex-wrap:wrap}.seg2 button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:6px 14px;font:600 12px var(--body);cursor:pointer}
 .seg2 button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
 .sentk{font-style:normal;font-size:12px;color:var(--ok);font-weight:700}
+.mcwrap{flex-basis:100%;font-size:13px}.mcwrap summary{cursor:pointer;font-weight:600}
+.mcbox{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px 18px;padding-top:8px}
+.mcrow{display:grid;grid-template-columns:110px 1fr 86px;align-items:center;gap:8px}
+.mcchk{display:flex;align-items:center;gap:6px;font-weight:600}.mcrow input[type=range]{width:100%;accent-color:var(--btn)}.mcrow input:disabled{opacity:.35}
+.mcv{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;text-align:right}
 .tip{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
 .copyp{display:block;width:100%;margin-top:8px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:11px;font:600 14px var(--body);cursor:pointer}
 .waNum{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 0}
@@ -128,7 +133,8 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
 <body>
 <div class="pbar" id="pbar" hidden><div class="wrap">
   <strong>Seu painel</strong>
-  <label for="m">Minha margem <input id="m" type="range" min="50" max="500" step="10"> <span id="mv"></span></label>
+  <label for="m">Margem geral <input id="m" type="range" min="50" max="500" step="10"> <span id="mv"></span></label>
+  <details class="mcwrap"><summary>Margem diferente por categoria</summary><p class="pnote">Marque as categorias que terão margem própria. As demais seguem a margem geral.</p><div id="mcbox" class="mcbox"></div></details>
   <label for="d">Desconto na vitrine <input id="d" type="range" min="0" max="70" step="5"> <span id="dv"></span></label>
   <label for="wa">WhatsApp <input id="wa" type="tel" inputmode="numeric" placeholder="(38) 99999-9999"></label>
   <button class="pbtn pbtn-main" id="mypeds" hidden>Meus pedidos</button>
@@ -160,8 +166,8 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
   <div class="items" id="items"></div>
   <div id="foot"></div>
 </div></div>
-<script src="lojas.js?v=1794306529"></script>
-<script src="data.js?v=1794306529"></script>
-<script src="vitrine.js?v=1794306529"></script>
+<script src="lojas.js?v=1794309301"></script>
+<script src="data.js?v=1794309301"></script>
+<script src="vitrine.js?v=1794309301"></script>
 </body>
 </html>
