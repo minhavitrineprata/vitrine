@@ -6,7 +6,7 @@ let cfg=qs.get("v")?decode(qs.get("v")):null;
 let demo=false;
 const PED=qs.get("pedido")?decode(qs.get("pedido")):null;
 if(!cfg&&PED&&(PED.l||PED.s))cfg=Object.assign({m:0,w:""},PED.l?{l:PED.l}:{},PED.s?{s:PED.s}:{});
-if(!cfg&&qs.get("l"))cfg={l:qs.get("l"),m:(window.LOJAS[qs.get("l")]||{}).m||100,d:(window.LOJAS[qs.get("l")]||{}).d||0,w:""};
+if(!cfg&&qs.get("l")){const L0=window.LOJAS[qs.get("l")]||{};cfg={l:qs.get("l"),m:L0.m||100,d:L0.d||0,w:"",mc:L0.mc||null}}
 if(!cfg&&!location.search&&window.DEMO){cfg=Object.assign({},window.DEMO);demo=true}
 const hex=v=>/^#[0-9a-fA-F]{3,8}$/.test(v||"")?v:null;
 const loja=cfg&&(cfg.s&&typeof cfg.s==="object"?{nome:String(cfg.s.n||"Catálogo").slice(0,60),logo:/^https:\/\//.test(cfg.s.lg||"")?cfg.s.lg:"",cor:hex(cfg.s.c)||"#FFFFFF",texto:hex(cfg.s.t)||"#1E1A21",botao:hex(cfg.s.b)||"#1E1A21",botaoTexto:hex(cfg.s.bt)||"#FFFFFF",h:cfg.s.h,p:cfg.s.p,e:cfg.s.e}:window.LOJAS[cfg.l]);
@@ -117,13 +117,15 @@ document.addEventListener("change",e=>{if(e.target.dataset.ps!==undefined)P[e.ta
 (function(){const sel=document.getElementById("aro");if(!sel)return;sel.innerHTML='<option value="">Todos os tamanhos</option>'+AROS.map(a=>`<option value="${a}">Aro ${a}</option>`).join("");
   sel.addEventListener("change",()=>{const prev=aro;aro=sel.value;if(aro){cat="Anéis";P.forEach(p=>{if(p.cat==="Anéis"&&(p.size===prev||!p.size))p.size=""})}else{P.forEach(p=>{if(p.size===prev)p.size=""})}shown=48;renderFilters();renderGrid()})})();
 let qt;document.getElementById("q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{q=e.target.value;shown=48;renderGrid()},200)});
-function clientLink(){const base=location.href.split("?")[0].split("#")[0];return base+"?v="+enc(Object.assign({l:cfg.l,m:margin,w:WA?(WA.length<=11?"55"+WA:WA):""},disc?{d:disc}:{},Object.keys(MC).length?{mc:MC}:{}))}
-function updLink(){document.getElementById("mylink").textContent=demo?"(o link aparece aqui quando o site estiver no ar)":clientLink()}
+function isDefault(){const L0=window.LOJAS[cfg.l]||{};const w0=String(L0.wa||"").replace(/\D/g,""),w1=WA.length<=11&&WA?"55"+WA:WA;
+  return L0.m===margin&&(L0.d||0)===disc&&w0===w1&&JSON.stringify(L0.mc||{})===JSON.stringify(MC)}
+function clientLink(){const base=location.href.split("?")[0].split("#")[0];if(cfg.l&&isDefault())return base+cfg.l;return base+"?v="+enc(Object.assign({l:cfg.l,m:margin,w:WA?(WA.length<=11?"55"+WA:WA):""},disc?{d:disc}:{},Object.keys(MC).length?{mc:MC}:{}))}
+function updLink(){document.getElementById("mylink").textContent=demo?"(o link aparece aqui quando o site estiver no ar)":clientLink();const n=document.getElementById("pnote");if(n&&!demo)n.textContent=isDefault()?"Este painel é só seu. Este é o seu link curto: ele já está com a margem e o WhatsApp salvos.":"Você mudou a margem, o desconto ou o WhatsApp: o link acima é o novo (mais longo). Copie e troque onde divulgou. Para ter um link curto com essas configurações, peça para a Kau."}
 function copyLink(b){const t=document.getElementById("mylink").textContent;const sel=()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("mylink"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Link selecionado: copie"};
   try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Copiado ✓";setTimeout(()=>b.textContent="Copiar link",1500)},sel)}catch(e){sel()}}
 function applyPanel(){document.getElementById("pbar").hidden=!painel||asCli;document.getElementById("back").hidden=!(painel&&asCli);renderGrid();renderCart()}
 function initPanel(){
-  painel=demo||location.hash==="#painel";
+  painel=demo||(location.hash==="#painel"&&PANEL_OK);
   if(!painel){applyPanel();return}
   const m=document.getElementById("m");m.value=margin;document.getElementById("mv").textContent="+"+margin+"%";
   document.getElementById("wa").value=WA?fmtWA(WA):"";
@@ -276,5 +278,9 @@ function renderOrder(){
   document.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
 }
 if(PED){document.getElementById("pbar").hidden=true;renderOrder();return}
+let PANEL_OK=false;
+async function checkKey(){const kh=(window.LOJAS[cfg.l]||{}).kh;if(!kh||!KEY||!(window.crypto&&crypto.subtle))return false;
+  try{const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(KEY));return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,16)===kh}catch(e){return false}}
 renderFilters();initPanel();renderGrid();renderCart();
+if(location.hash==="#painel"&&!demo)checkKey().then(ok=>{PANEL_OK=ok;if(ok)initPanel()});
 })();
