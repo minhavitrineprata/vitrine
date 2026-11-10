@@ -30,7 +30,7 @@ const cats=["Todos",...new Set(P.map(p=>p.cat))];
 let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="",aro="",LASTSIG="",PEDID="",LASTREG=null,SENT="";
 const API=window.API||"",KEY=qs.get("k")||"";
 function registrar(){if(!API||!cfg.l||!LASTREG||SENT===LASTREG.id)return;SENT=LASTREG.id;const b=JSON.stringify(LASTREG);try{if(navigator.sendBeacon&&navigator.sendBeacon(API,new Blob([b],{type:"text/plain"})))return}catch(e){}try{fetch(API,{method:"POST",body:b,mode:"no-cors",keepalive:true})}catch(e){}}
-const AROS=[...new Set(P.filter(p=>p.cat==="Anéis").flatMap(p=>p.colors.flatMap(c=>c.sizes)))].sort((a,b)=>a-b);
+const AROS=[...new Set(P.filter(p=>p.cat==="Anéis").flatMap(p=>p.colors.flatMap(c=>c.ot?[]:c.sizes)))].filter(x=>/^\d+$/.test(x)).sort((a,b)=>a-b);
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const r2=v=>Math.round(v*100)/100;
@@ -40,6 +40,7 @@ const price=(b,cat)=>disc?(mg(cat)===0?r2(b*(1-disc/100)):Math.max(0.9,Math.ceil
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 P.forEach(p=>p.s=norm(p.name+" "+p.colors.map(c=>c.c).join(" ")));
 const fmtWA=w=>{w=w.replace(/^55(?=\d{10,11}$)/,"");return w.length>=10?`(${w.slice(0,2)}) ${w.slice(2,w.length-4)}-${w.slice(-4)}`:w};
+const vl=s=>{s=String(s||"");return s==="?"?"Aro: não tenho certeza":(/^\d+$/.test(s)?"Aro "+s.replace(/^0/,""):s)};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 function loadChunk(n){if(LOADING[n])return;LOADING[n]=1;fetch("img/c"+n+".json?v="+VER).then(r=>r.json()).then(d=>{Object.assign(IMG,d);document.querySelectorAll("img[data-k]").forEach(fill)}).catch(()=>{LOADING[n]=0})}
@@ -52,7 +53,7 @@ function list(){const nq=norm(q.trim());return P.filter(p=>{
 function card(p){
   const c=p.colors[p.sel];
   const col=p.colors.length>1?`<div class="colors">${p.colors.map((x,j)=>`<button class="cbtn" data-p="${p.id}" data-c="${j}" aria-pressed="${j===p.sel}">${esc(x.c||"Padrão")}</button>`).join("")}</div>`:(c.c?`<span class="one">Cor: ${esc(c.c)}</span>`:"");
-  const sz=c.sizes.length?`<select class="sz" id="sz${p.id}" data-ps="${p.id}" aria-label="Tamanho do aro"><option value="">Tamanho do aro</option>${c.sizes.map(s=>`<option ${s===p.size?"selected":""}>${s}</option>`).join("")}<option value="?" ${p.size==="?"?"selected":""}>Não tenho certeza</option></select>`:"";
+  const sz=c.sizes.length?`<select class="sz" id="sz${p.id}" data-ps="${p.id}" aria-label="${c.ot?"Escolha a letra":"Tamanho do aro"}"><option value="">${c.ot?"Escolha a letra":"Tamanho do aro"}</option>${c.sizes.map(s=>`<option value="${s}" ${s===p.size?"selected":""}>${c.ot?s:s}</option>`).join("")}${c.ot?"":`<option value="?" ${p.size==="?"?"selected":""}>Não tenho certeza</option>`}</select>`:"";
   return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}${disc?`<span class="old">De ${brl(full(c.price,p.cat))}</span>`:""}<span class="price">${disc?"Por ":""}${brl(price(c.price,p.cat))}${disc?`<span class="off">-${disc}%</span>`:""}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em class="${price(c.price,p.cat)-c.price<=0?"neg":""}">${brl(price(c.price,p.cat)-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
 }
 function hook(root){root.querySelectorAll("img[data-k]").forEach(im=>{fill(im);const p=P[+im.closest(".card").id.slice(4)];loadChunk(p.colors[p.sel].ch)})}
@@ -66,7 +67,7 @@ function renderCart(){
   if(!ids.length){el.innerHTML='<p class="empty">Sua sacola está vazia.</p>';ft.innerHTML="";return}
   let tot=0;const lines=[],its=[],reg=[];
   el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price,p.cat),t=un*n;tot+=t;
-    const det=[c.c?"Cor "+c.c:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
+    const det=[c.c?"Cor "+c.c:"",sz?vl(sz):""].filter(Boolean).join(" · ");
     lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);its.push([p.ref,c.c,sz||"",n,Math.round(un*100)]);reg.push([p.ref,p.name,c.c,sz==="?"?"?":(sz||""),n,un,c.price]);
     return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
   el.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
@@ -100,7 +101,7 @@ document.addEventListener("click",e=>{
   else if(t.dataset.c!==undefined&&t.dataset.p!==undefined){const p=P[t.dataset.p];p.sel=+t.dataset.c;p.size="";rerender(p)}
   else if(t.classList.contains("add")&&t.dataset.id!=null){
     const p=P[t.dataset.id],c=p.colors[p.sel];
-    if(c.sizes.length&&!p.size){const s=document.getElementById("sz"+p.id);s.focus();s.classList.add("need");t.textContent="Escolha o tamanho";setTimeout(()=>{t.textContent="Adicionar";s.classList.remove("need")},1500);return}
+    if(c.sizes.length&&!p.size){const s=document.getElementById("sz"+p.id);s.focus();s.classList.add("need");t.textContent=c.ot?"Escolha a letra":"Escolha o tamanho";setTimeout(()=>{t.textContent="Adicionar";s.classList.remove("need")},1500);return}
     const key=p.id+"|"+p.sel+"|"+(c.sizes.length?p.size:"");cart[key]=(cart[key]||0)+1;renderCart();t.textContent="Adicionado ✓";setTimeout(()=>t.textContent="Adicionar",900)}
   else if(t.dataset.inc){cart[t.dataset.inc]++;renderCart()}
   else if(t.dataset.dec){if(--cart[t.dataset.dec]<=0)delete cart[t.dataset.dec];renderCart()}
@@ -183,7 +184,7 @@ function manSel(){
   const p=P[MSEL.pid],c=p.colors[MSEL.ci];
   box.innerHTML=`<div class="mpick"><b>${esc(p.name)}</b><small>REF ${esc(p.ref)}</small>
     ${p.colors.length>1?`<label>Cor <select id="mancor">${p.colors.map((x,j)=>`<option value="${j}" ${j===MSEL.ci?"selected":""}>${esc(x.c||"Padrão")}</option>`).join("")}</select></label>`:(c.c?`<small>Cor: ${esc(c.c)}</small>`:"")}
-    ${c.sizes.length?`<label>Aro <select id="manaro"><option value="">Escolha</option>${c.sizes.map(s=>`<option ${s===MSEL.aro?"selected":""}>${s}</option>`).join("")}<option value="?" ${MSEL.aro==="?"?"selected":""}>Não tenho certeza</option></select></label>`:""}
+    ${c.sizes.length?`<label>${c.ot?"Letra":"Aro"} <select id="manaro"><option value="">Escolha</option>${c.sizes.map(s=>`<option ${s===MSEL.aro?"selected":""}>${s}</option>`).join("")}${c.ot?"":`<option value="?" ${MSEL.aro==="?"?"selected":""}>Não tenho certeza</option>`}</select></label>`:""}
     <label>Qtd <input id="manqtd" type="number" min="1" max="99" value="${MSEL.qtd}"></label>
     <span class="mpr">${brl(price(c.price,p.cat))} cada</span>
     <button class="add" id="manadd">Adicionar ao pedido</button></div>`;
@@ -191,7 +192,7 @@ function manSel(){
 function manDraft(){
   const box=document.getElementById("mandraft");if(!box)return;
   if(!MAN.length){box.innerHTML="";document.getElementById("mansave").hidden=true;return}
-  let tot=0;box.innerHTML=MAN.map((it,i)=>{tot+=it[5]*it[4];return `<div class="mdr"><span>${it[4]}x ${esc(it[1])}<small>${esc([it[2]?"Cor "+it[2]:"",it[3]?(it[3]==="?"?"Aro a confirmar":"Aro "+String(it[3]).replace(/^0/,"")):""].filter(Boolean).join(" · "))}</small></span><span>${brl(it[5]*it[4])}</span><button class="x" data-mdel="${i}" aria-label="Remover">×</button></div>`}).join("")+`<div class="total"><span>Total</span><span>${brl(tot)}</span></div>`;
+  let tot=0;box.innerHTML=MAN.map((it,i)=>{tot+=it[5]*it[4];return `<div class="mdr"><span>${it[4]}x ${esc(it[1])}<small>${esc([it[2]?"Cor "+it[2]:"",it[3]?vl(it[3]):""].filter(Boolean).join(" · "))}</small></span><span>${brl(it[5]*it[4])}</span><button class="x" data-mdel="${i}" aria-label="Remover">×</button></div>`}).join("")+`<div class="total"><span>Total</span><span>${brl(tot)}</span></div>`;
   document.getElementById("mansave").hidden=false;
 }
 document.addEventListener("input",e=>{if(e.target.id==="manq"){clearTimeout(window.__mq);window.__mq=setTimeout(manResults,200)}});
@@ -235,7 +236,7 @@ function renderPeds(loading){
   box.innerHTML=PEDS.map(o=>`<article class="pcard${o.status==="Cancelado"?" canc":""}"><header><div><strong>Pedido nº ${esc(o.id)}</strong><small>${fmtD(o.data)} · ${brl(o.total)}</small></div>
     <select class="pst" data-pid="${esc(o.id)}" aria-label="Status do pedido">${ST.map(s=>`<option ${s===o.status?"selected":""}>${s}</option>`).join("")}</select></header>
     ${o.itens.map(it=>{const k=thumbFor(it.ref,it.cor);const sent=it.destino==="Enviado à Kau";
-      return `<div class="pit">${k?`<img class="th ok" data-k="${k}" alt="">`:'<div class="th"></div>'}<div class="pin"><span>${it.qtd}x ${esc(it.nome)}</span><small>${esc([it.cor?"Cor "+it.cor:"",it.aro?(it.aro==="?"?"Aro: não tem certeza":"Aro "+String(it.aro).replace(/^0/,"")):""].filter(Boolean).join(" · "))}</small>
+      return `<div class="pit">${k?`<img class="th ok" data-k="${k}" alt="">`:'<div class="th"></div>'}<div class="pin"><span>${it.qtd}x ${esc(it.nome)}</span><small>${esc([it.cor?"Cor "+it.cor:"",it.aro?vl(it.aro):""].filter(Boolean).join(" · "))}</small>
       ${sent?`<em class="sentk">Enviado à Kau ✓</em>`:`<div class="seg2"><button data-ln="${it.linha}" data-dest="Tenho" aria-pressed="${it.destino==="Tenho"}">Tenho</button><button data-ln="${it.linha}" data-dest="Encomendar" aria-pressed="${it.destino==="Encomendar"}">Encomendar</button></div>`}</div></div>`}).join("")}</article>`).join("");
   box.querySelectorAll("img[data-k]").forEach(fill);
 }
@@ -267,7 +268,7 @@ function renderOrder(){
     const p=P.find(x=>x.ref===ref&&x.colors.some(c=>c.c===cn))||P.find(x=>x.ref===ref);
     const c=p?(p.colors.find(c=>c.c===cn)||p.colors[0]):null;
     const un=(+cents||0)/100,t=un*(+n||0);tot+=t;
-    const det=[cn?"Cor "+cn:"",sz?(sz==="?"?"Aro: não tenho certeza":"Aro "+sz):""].filter(Boolean).join(" · ");
+    const det=[cn?"Cor "+cn:"",sz?vl(sz):""].filter(Boolean).join(" · ");
     if(c)loadChunk(c.ch);
     return `<div class="orow">${c?`<img class="oth" data-k="${c.k}" alt="">`:`<div class="oth none">Sem foto</div>`}<div class="oinfo"><strong>${esc(p?p.name:"Peça "+ref)}</strong><small>REF ${esc(ref)}${det?" · "+esc(det):""}</small><small>${n}x ${brl(un)}</small></div><span class="ot">${brl(t)}</span></div>`}).join("");
   document.getElementById("main").innerHTML=`<section class="hero"><h2>Pedido</h2><p>${its.length} ${its.length===1?"item":"itens"} · conferência com fotos</p></section><div class="olist">${rows||'<p class="empty">Pedido vazio.</p>'}</div><div class="total ototal"><span>Total</span><span>${brl(tot)}</span></div><button class="pdfb" id="pdfb">Salvar em PDF / Imprimir</button>`;

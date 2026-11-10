@@ -99,11 +99,15 @@ for pid in order:
     colors = OrderedDict()
     for v in av:
         cn = colorname(v['o0'])
-        size = v['o1'] if v['o1'] and re.fullmatch(r'\d{1,2}', v['o1']) and v['o1'] != '00' else ''
+        o1 = (v['o1'] or '').strip().upper()
+        lm = re.fullmatch(r'LETRA\s+([A-Z])', o1)
+        size = o1 if re.fullmatch(r'\d{1,2}', o1) and o1 != '00' else ('Letra ' + lm.group(1) if lm else '')
         if cn not in colors: colors[cn] = {'c': cn, 'price': v['price'], 'img': big(v['img']) or big(i['img']), 'sizes': []}
+        if lm: colors[cn]['ot'] = 'Letra'
         if size and size not in colors[cn]['sizes']: colors[cn]['sizes'].append(size)
     for cc in colors.values():
         if not cc['img']: cc['img'] = big(i['img'])
+        cc['sizes'].sort(key=lambda x: (0, int(x)) if x.isdigit() else (1, x))
     bycat.setdefault(c, []).append({'ref': (m.group(1).upper() + ' ' + m.group(2)) if m else '', 'name': clean(i['name']), 'cat': c, 'colors': list(colors.values())})
 
 lists = [list(l) for l in bycat.values()]
