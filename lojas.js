@@ -7,6 +7,7 @@ window.LOJAS={
   "caiena":{"kh":"3f984e1a5982cc60","nome":"Caiena Acessórios","wa":"5555996274521","m":300,"logo":"logos/caiena.jpg","cor":"#FCE4EF","texto":"#B0035A","botao":"#E8037A","botaoTexto":"#FFFFFF"},
   "guzzi":{"kh":"667b4cebf149e8c0","nome":"Guzzi Jóias","wa":"5547997217121","m":300,"logo":"logos/guzzi.jpg","cor":"#020202","texto":"#F2F2F2","botao":"#F2F2F2","botaoTexto":"#020202"},
   "ahazza":{"kh":"7fb72e4217361123","nome":"Ahazza Joias","wa":"5551994388433","m":300,"logo":"logos/ahazza.jpg","cor":"#CFC1B4","texto":"#5E4A32","botao":"#7A5E3A","botaoTexto":"#FFFFFF"},
+  "wolves":{"kh":"5462193cef1db6cc","nome":"Wolves Joias","wa":"5554996743927","m":300,"logo":"logos/wolves.jpg","cor":"#FFFFFF","texto":"#111111","botao":"#111111","botaoTexto":"#FFFFFF"},
   "essenciale":{"kh":"ce4a9bf078971008","nome":"Essenciale","wa":"5554996031004","m":300,"logo":"logos/essenciale.jpg","cor":"#000000","texto":"#E2B45A","botao":"#E2B45A","botaoTexto":"#000000"}
 };
 window.DEMO=null;
