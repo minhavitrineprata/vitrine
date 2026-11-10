@@ -98,7 +98,7 @@ document.addEventListener("click",e=>{
   const t=e.target.closest("button")||e.target;
   if(t.dataset.cat){cat=t.dataset.cat;if(aro&&cat!=="Anéis"&&cat!=="Todos"){P.forEach(p=>{if(p.size===aro)p.size=""});aro="";const as=document.getElementById("aro");if(as)as.value=""}shown=48;renderFilters();renderGrid()}
   else if(t.dataset.c!==undefined&&t.dataset.p!==undefined){const p=P[t.dataset.p];p.sel=+t.dataset.c;p.size="";rerender(p)}
-  else if(t.classList.contains("add")){
+  else if(t.classList.contains("add")&&t.dataset.id!=null){
     const p=P[t.dataset.id],c=p.colors[p.sel];
     if(c.sizes.length&&!p.size){const s=document.getElementById("sz"+p.id);s.focus();s.classList.add("need");t.textContent="Escolha o tamanho";setTimeout(()=>{t.textContent="Adicionar";s.classList.remove("need")},1500);return}
     const key=p.id+"|"+p.sel+"|"+(c.sizes.length?p.size:"");cart[key]=(cart[key]||0)+1;renderCart();t.textContent="Adicionado ✓";setTimeout(()=>t.textContent="Adicionar",900)}
@@ -166,6 +166,57 @@ function kauMsg(list){
   const ids=[...new Set(list.map(i=>i.pid))];
   return {tot,ids,txt:`Pedido de atacado: ${loja.nome}\n\n${lines.join("\n\n")}\n\nTotal atacado: ${brl(tot)}\nPedidos das clientes: ${ids.map(i=>"nº "+i).join(", ")}`};
 }
+/* ---- Pedido manual ---- */
+let MAN=[],MSEL=null;
+function manResults(){
+  const box=document.getElementById("manres");if(!box)return;
+  const q=norm((document.getElementById("manq").value||"").trim());
+  if(q.length<2){box.innerHTML='<p class="kb-msg">Digite pelo menos 2 letras do nome, cor ou código da peça.</p>';return}
+  const L=P.filter(p=>q.split(/\s+/).every(w=>(p.s+" "+norm(p.ref)).includes(w))).slice(0,12);
+  if(!L.length){box.innerHTML='<p class="kb-msg">Nenhuma peça encontrada.</p>';return}
+  box.innerHTML=L.map(p=>{const c=p.colors[0];loadChunk(c.ch);return `<button class="mres" data-mp="${p.id}"><img class="th" data-k="${c.k}" alt=""><span><b>${esc(p.name)}</b><small>REF ${esc(p.ref)} · ${brl(price(c.price,p.cat))}</small></span></button>`}).join("");
+  box.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
+}
+function manSel(){
+  const box=document.getElementById("mansel");if(!box)return;
+  if(!MSEL){box.innerHTML="";return}
+  const p=P[MSEL.pid],c=p.colors[MSEL.ci];
+  box.innerHTML=`<div class="mpick"><b>${esc(p.name)}</b><small>REF ${esc(p.ref)}</small>
+    ${p.colors.length>1?`<label>Cor <select id="mancor">${p.colors.map((x,j)=>`<option value="${j}" ${j===MSEL.ci?"selected":""}>${esc(x.c||"Padrão")}</option>`).join("")}</select></label>`:(c.c?`<small>Cor: ${esc(c.c)}</small>`:"")}
+    ${c.sizes.length?`<label>Aro <select id="manaro"><option value="">Escolha</option>${c.sizes.map(s=>`<option ${s===MSEL.aro?"selected":""}>${s}</option>`).join("")}<option value="?" ${MSEL.aro==="?"?"selected":""}>Não tenho certeza</option></select></label>`:""}
+    <label>Qtd <input id="manqtd" type="number" min="1" max="99" value="${MSEL.qtd}"></label>
+    <span class="mpr">${brl(price(c.price,p.cat))} cada</span>
+    <button class="add" id="manadd">Adicionar ao pedido</button></div>`;
+}
+function manDraft(){
+  const box=document.getElementById("mandraft");if(!box)return;
+  if(!MAN.length){box.innerHTML="";document.getElementById("mansave").hidden=true;return}
+  let tot=0;box.innerHTML=MAN.map((it,i)=>{tot+=it[5]*it[4];return `<div class="mdr"><span>${it[4]}x ${esc(it[1])}<small>${esc([it[2]?"Cor "+it[2]:"",it[3]?(it[3]==="?"?"Aro a confirmar":"Aro "+String(it[3]).replace(/^0/,"")):""].filter(Boolean).join(" · "))}</small></span><span>${brl(it[5]*it[4])}</span><button class="x" data-mdel="${i}" aria-label="Remover">×</button></div>`}).join("")+`<div class="total"><span>Total</span><span>${brl(tot)}</span></div>`;
+  document.getElementById("mansave").hidden=false;
+}
+document.addEventListener("input",e=>{if(e.target.id==="manq"){clearTimeout(window.__mq);window.__mq=setTimeout(manResults,200)}});
+document.addEventListener("change",e=>{
+  if(e.target.id==="mancor"&&MSEL){MSEL.ci=+e.target.value;MSEL.aro="";manSel()}
+  else if(e.target.id==="manaro"&&MSEL){MSEL.aro=e.target.value}
+  else if(e.target.id==="manqtd"&&MSEL){MSEL.qtd=Math.max(1,Math.min(99,+e.target.value||1))}
+});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.id==="manopen"){const f=document.getElementById("manform");f.hidden=!f.hidden;if(!f.hidden){document.getElementById("manq").focus();manResults()}}
+  else if(t.dataset.mp!=null){MSEL={pid:+t.dataset.mp,ci:0,aro:"",qtd:1};manSel()}
+  else if(t.id==="manadd"&&MSEL){
+    const p=P[MSEL.pid],c=p.colors[MSEL.ci];const q=document.getElementById("manqtd");if(q)MSEL.qtd=Math.max(1,Math.min(99,+q.value||1));
+    if(c.sizes.length&&!MSEL.aro){const s=document.getElementById("manaro");if(s){s.focus();s.classList.add("need");setTimeout(()=>s.classList.remove("need"),1500)}return}
+    MAN.push([p.ref,p.name,c.c,c.sizes.length?MSEL.aro:"",MSEL.qtd,price(c.price,p.cat),c.price]);MSEL=null;manSel();manDraft()}
+  else if(t.dataset.mdel!=null){MAN.splice(+t.dataset.mdel,1);manDraft()}
+  else if(t.id==="mansave"&&MAN.length){
+    t.disabled=true;t.textContent="Salvando…";
+    const id=("M"+Date.now().toString(36).slice(-5)+Math.random().toString(36).slice(2,4)).toUpperCase();
+    const tot=Math.round(MAN.reduce((a,i)=>a+i[5]*i[4],0)*100)/100;
+    post({a:"pedido",id,itens:MAN,total:tot}).then(r=>{t.disabled=false;t.textContent="Salvar pedido";
+      if(r&&r.ok){MAN=[];manDraft();document.getElementById("manq").value="";manResults();document.getElementById("manform").hidden=true;loadPeds()}
+      else{t.textContent="Não salvou. Tente de novo"}})}
+});
 function renderPeds(loading){
   const v=document.getElementById("pedview");if(!v||v.hidden)return;
   const box=document.getElementById("pedlist"),kb=document.getElementById("kaubar");

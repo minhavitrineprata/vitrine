@@ -109,6 +109,16 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .pbar .mcrow .mcchk{flex:0 0 110px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin:0}
 .pbar .mcrow input[type=range]{flex:1 1 auto;width:auto;min-width:60px;accent-color:var(--btn)}.mcrow input[type=range]:disabled{opacity:.35}
 .mcv{flex:0 0 92px;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;text-align:right;white-space:nowrap}
+.manbox{background:var(--surface);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+#manform{display:flex;flex-direction:column;gap:10px}#manform .search{flex:none;width:100%}#manform[hidden]{display:none!important}
+.manres{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.mres{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px;cursor:pointer;font:13px var(--body)}
+.mres .th{width:48px;height:48px}.mres b{font-weight:600;display:block}.mres small{color:var(--muted)}
+.mpick{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border:1px solid var(--btn);border-radius:10px;padding:10px}
+.mpick b{flex-basis:100%}.mpick label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
+.mpick select,.mpick input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:6px;font:14px var(--body)}.mpick input{width:64px}
+.mpr{font-weight:700;font-variant-numeric:tabular-nums}
+.mdr{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding-block:6px;font-size:14px}.mdr small{display:block;color:var(--muted);font-size:12px}
 .tip{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
 .copyp{display:block;width:100%;margin-top:8px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:11px;font:600 14px var(--body);cursor:pointer}
 .waNum{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 0}
@@ -160,6 +170,11 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
 <div class="pedview" id="pedview" hidden><div class="wrap pv-in">
   <div class="pv-head"><h2>Meus pedidos</h2><div class="pv-acts"><button class="pbtn" id="pedreload">Atualizar</button><button class="x" id="pedclose" aria-label="Fechar">×</button></div></div>
   <section class="kaubar" id="kaubar"></section>
+  <section class="manbox"><button class="pbtn pbtn-main" id="manopen">+ Novo pedido manual</button>
+    <div id="manform" hidden><p class="kb-msg">Para vendas que não vieram pelo link (WhatsApp, Instagram, presencial). Busque a peça, escolha cor e aro e adicione.</p>
+    <input class="search" id="manq" type="search" placeholder="Buscar peça, ex.: solitário, coração, ANK 1593" aria-label="Buscar peça">
+    <div id="manres" class="manres"></div><div id="mansel"></div><div id="mandraft" class="mandraft"></div>
+    <button class="add" id="mansave" hidden>Salvar pedido</button></div></section>
   <div id="pedlist"></div>
 </div></div>
 <div class="drawer" id="drawer" hidden><div class="panel" role="dialog" aria-label="Sacola">
@@ -167,8 +182,8 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding-block:0 30px}
   <div class="items" id="items"></div>
   <div id="foot"></div>
 </div></div>
-<script src="lojas.js?v=1794309720"></script>
-<script src="data.js?v=1794309720"></script>
-<script src="vitrine.js?v=1794309720"></script>
+<script src="lojas.js?v=1794310682"></script>
+<script src="data.js?v=1794310682"></script>
+<script src="vitrine.js?v=1794310682"></script>
 </body>
 </html>
