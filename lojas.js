@@ -4,6 +4,7 @@ window.LOJAS={
   "bella":{"nome":"Bella Jóias","wa":"5554999671910","m":300,"logo":"logos/bella.jpg","cor":"#24CEDD","texto":"#FFFFFF","botao":"#0B6E78","botaoTexto":"#FFFFFF"},
   "nena":{"nome":"Nena Joias","wa":"5549998127148","m":300,"logo":"logos/nena.jpg","cor":"#E8CFC3","texto":"#533E25","botao":"#533E25","botaoTexto":"#F6EBE5"},
   "fran":{"nome":"Fran Bolsanella Jóias","wa":"5542988125513","m":300,"logo":"logos/fran.jpg","cor":"#D3C3E0","texto":"#5E3F8F","botao":"#6B4BA0","botaoTexto":"#FFFFFF"},
+  "caiena":{"nome":"Caiena Acessórios","wa":"5555996274521","m":300,"logo":"logos/caiena.jpg","cor":"#FCE4EF","texto":"#B0035A","botao":"#E8037A","botaoTexto":"#FFFFFF"},
   "essenciale":{"nome":"Essenciale","wa":"5554996031004","m":300,"logo":"logos/essenciale.jpg","cor":"#000000","texto":"#E2B45A","botao":"#E2B45A","botaoTexto":"#000000"}
 };
 window.DEMO=null;
