@@ -1,0 +1,41 @@
+name: Atualizar estoque
+
+on:
+  schedule:
+    - cron: "27 10 * * 1-5"   # 07:27 em Brasília, segunda a sexta
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: atualizar-estoque
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Atualizar catálogo
+        run: python3 -I tools/atualizar.py https://www.kaujoias.com.br "$GITHUB_WORKSPACE"
+      - name: Salvar e publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "minhavitrineprata"
+          git config user.email "minhavitrineprata@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Sem mudanças no estoque."
+            exit 0
+          fi
+          git commit -m "Atualização diária do estoque"
+          git push
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" || true
