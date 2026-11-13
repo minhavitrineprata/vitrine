@@ -2,7 +2,7 @@ name: Atualizar estoque
 
 on:
   schedule:
-    - cron: "27 10 * * 1-5"   # 07:27 em Brasília, segunda a sexta
+    - cron: "13 8 * * 1-5"   # 05:13 em Brasília, segunda a sexta
   workflow_dispatch:
 
 permissions:
