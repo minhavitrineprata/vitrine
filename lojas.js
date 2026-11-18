@@ -9,6 +9,7 @@ window.LOJAS={
   "ahazza":{"kh":"7fb72e4217361123","nome":"Ahazza Joias","wa":"5551994388433","m":300,"logo":"logos/ahazza.jpg","cor":"#CFC1B4","texto":"#5E4A32","botao":"#7A5E3A","botaoTexto":"#FFFFFF"},
   "wolves":{"kh":"5462193cef1db6cc","nome":"Wolves Joias","wa":"5554996743927","m":300,"logo":"logos/wolves.jpg","cor":"#FFFFFF","texto":"#111111","botao":"#111111","botaoTexto":"#FFFFFF"},
   "baronesa":{"kh":"0e4b6b67d90a0d6f","nome":"Baronesa Prata","wa":"5515998388086","m":300,"logo":"logos/baronesa.jpg","cor":"#FEFEFE","texto":"#111111","botao":"#111111","botaoTexto":"#FFFFFF"},
+  "mariaglam":{"kh":"9d2941e309a3f1c2","nome":"Maria Glam Semijoias","wa":"5551996344669","m":300,"logo":"logos/mariaglam.jpg","cor":"#FFFFFF","texto":"#8A5E14","botao":"#A8781E","botaoTexto":"#FFFFFF"},
   "essenciale":{"kh":"ce4a9bf078971008","nome":"Essenciale","wa":"5554996031004","m":300,"logo":"logos/essenciale.jpg","cor":"#000000","texto":"#E2B45A","botao":"#E2B45A","botaoTexto":"#000000"}
 };
 window.DEMO=null;
