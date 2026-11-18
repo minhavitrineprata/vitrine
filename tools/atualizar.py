@@ -94,7 +94,7 @@ for pid in order:
         for k, v in kw:
             if k in i['name']: c = v; break
     if not c: continue
-    av = [v for v in i['vars'] if v['av'] and (v['stock'] is None or v['stock'] > 0)]
+    av = [v for v in i['vars'] if v['av'] and (v['stock'] is None or v['stock'] > 0) and isinstance(v['price'], (int, float)) and v['price'] > 0]
     if not av: continue
     colors = OrderedDict()
     for v in av:

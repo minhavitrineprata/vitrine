@@ -25,7 +25,7 @@ if(loja.h||loja.p){const hs=document.querySelector(".hero");if(hs){if(loja.h)hs.
 const lg=document.getElementById("logo");if(loja.logo){lg.src=loja.logo;lg.alt=loja.nome}else{lg.hidden=true;const nm=document.getElementById("nome");nm.textContent=loja.nome;nm.hidden=false}
 document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo WhatsApp";
 
-const P=window.P;P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
+const P=window.P.map(p=>Object.assign({},p,{colors:p.colors.filter(c=>c.price>0)})).filter(p=>p.colors.length);P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
 const cats=["Todos",...new Set(P.map(p=>p.cat))];
 let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="",aro="",LASTSIG="",PEDID="",LASTREG=null,SENT="";
 const API=window.API||"",KEY=qs.get("k")||"";
