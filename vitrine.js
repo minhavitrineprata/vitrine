@@ -25,7 +25,7 @@ if(loja.h||loja.p){const hs=document.querySelector(".hero");if(hs){if(loja.h)hs.
 const lg=document.getElementById("logo");if(loja.logo){lg.src=loja.logo;lg.alt=loja.nome}else{lg.hidden=true;const nm=document.getElementById("nome");nm.textContent=loja.nome;nm.hidden=false}
 document.getElementById("foottxt").textContent=loja.nome+" · pedidos pelo WhatsApp";
 
-const P=window.P.map(p=>Object.assign({},p,{colors:p.colors.filter(c=>c.price>0)})).filter(p=>p.colors.length);P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
+const P=window.P.map(p=>Object.assign({},p,{moi:/moissanite/i.test(p.name),colors:p.colors.filter(c=>c.price>0)})).filter(p=>p.colors.length);P.forEach((p,i)=>{p.id=i;p.sel=0;p.size=""});
 const cats=["Todos",...new Set(P.map(p=>p.cat))];
 let cat="Todos",q="",shown=48,cart={},LASTMSG="",LASTNUM="",aro="",LASTSIG="",PEDID="",LASTREG=null,SENT="";
 const API=window.API||"",KEY=qs.get("k")||"";
@@ -34,6 +34,7 @@ const AROS=[...new Set(P.filter(p=>p.cat==="Anéis").flatMap(p=>p.colors.flatMap
 const IMG={},LOADING={};
 const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const r2=v=>Math.round(v*100)/100;
+const mk=p=>(p.moi&&MC.Moissanite!=null)?"Moissanite":p.cat;
 const mg=cat=>(cat&&MC[cat]!=null)?MC[cat]:margin;
 const full=(b,cat)=>{const m=mg(cat);return m===0?r2(b):Math.ceil(b*(1+m/100))-0.1};
 const price=(b,cat)=>disc?(mg(cat)===0?r2(b*(1-disc/100)):Math.max(0.9,Math.ceil(full(b,cat)*(1-disc/100))-0.1)):full(b,cat);
@@ -54,7 +55,7 @@ function card(p){
   const c=p.colors[p.sel];
   const col=p.colors.length>1?`<div class="colors">${p.colors.map((x,j)=>`<button class="cbtn" data-p="${p.id}" data-c="${j}" aria-pressed="${j===p.sel}">${esc(x.c||"Padrão")}</button>`).join("")}</div>`:(c.c?`<span class="one">Cor: ${esc(c.c)}</span>`:"");
   const sz=c.sizes.length?`<select class="sz" id="sz${p.id}" data-ps="${p.id}" aria-label="${c.ot?"Escolha a letra":"Tamanho do aro"}"><option value="">${c.ot?"Escolha a letra":"Tamanho do aro"}</option>${c.sizes.map(s=>`<option value="${s}" ${s===p.size?"selected":""}>${c.ot?s:s}</option>`).join("")}${c.ot?"":`<option value="?" ${p.size==="?"?"selected":""}>Não tenho certeza</option>`}</select>`:"";
-  return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}${disc?`<span class="old">De ${brl(full(c.price,p.cat))}</span>`:""}<span class="price">${disc?"Por ":""}${brl(price(c.price,p.cat))}${disc?`<span class="off">-${disc}%</span>`:""}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em class="${price(c.price,p.cat)-c.price<=0?"neg":""}">${brl(price(c.price,p.cat)-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
+  return `<article class="card" id="card${p.id}"><div class="ph"><img data-k="${c.k}" alt="${esc(p.name)}"></div><div class="info"><h3>${esc(p.name)}</h3>${col}${disc?`<span class="old">De ${brl(full(c.price,mk(p)))}</span>`:""}<span class="price">${disc?"Por ":""}${brl(price(c.price,mk(p)))}${disc?`<span class="off">-${disc}%</span>`:""}</span>${painel&&!asCli?`<span class="cost">Você paga ${brl(c.price)} · lucro <em class="${price(c.price,mk(p))-c.price<=0?"neg":""}">${brl(price(c.price,mk(p))-c.price)}</em></span>`:""}${sz}<button class="add" data-id="${p.id}">Adicionar</button></div></article>`;
 }
 function hook(root){root.querySelectorAll("img[data-k]").forEach(im=>{fill(im);const p=P[+im.closest(".card").id.slice(4)];loadChunk(p.colors[p.sel].ch)})}
 function renderGrid(){const L=list(),g=document.getElementById("grid");g.innerHTML=L.slice(0,shown).map(card).join("");hook(g);document.getElementById("more").hidden=L.length<=shown;document.getElementById("found").textContent=L.length+" peças"}
@@ -66,7 +67,7 @@ function renderCart(){
   document.getElementById("cnt").textContent=Object.values(cart).reduce((a,b)=>a+b,0);
   if(!ids.length){el.innerHTML='<p class="empty">Sua sacola está vazia.</p>';ft.innerHTML="";return}
   let tot=0;const lines=[],its=[],reg=[];
-  el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price,p.cat),t=un*n;tot+=t;
+  el.innerHTML=ids.map(key=>{const [pid,ci,sz]=key.split("|"),p=P[pid],c=p.colors[ci],n=cart[key],un=price(c.price,mk(p)),t=un*n;tot+=t;
     const det=[c.c?"Cor "+c.c:"",sz?vl(sz):""].filter(Boolean).join(" · ");
     lines.push(`${n}x ${p.name}${det?" · "+det:""} (REF ${p.ref}) ${brl(t)}`);its.push([p.ref,c.c,sz||"",n,Math.round(un*100)]);reg.push([p.ref,p.name,c.c,sz==="?"?"?":(sz||""),n,un,c.price]);
     return `<div class="row"><img class="th" data-k="${c.k}" alt=""><span class="n">${esc(p.name)}<small>${esc(det)}${det?" · ":""}${brl(un)} cada</small></span><span class="t">${brl(t)}</span><div class="qty"><button data-dec="${key}" aria-label="Diminuir">−</button>${n}<button data-inc="${key}" aria-label="Aumentar">+</button></div></div>`}).join("");
@@ -133,7 +134,7 @@ function initPanel(){
   dd.addEventListener("input",()=>{disc=+dd.value;document.getElementById("dv").textContent=disc?"-"+disc+"%":"sem desconto";updLink();renderGrid();renderCart()});
   m.addEventListener("input",()=>{margin=+m.value;document.getElementById("mv").textContent="+"+margin+"%";renderMC();updLink();renderGrid();renderCart()});
   const mcb=document.getElementById("mcbox");
-  function renderMC(){if(!mcb)return;mcb.innerHTML=cats.filter(c=>c!=="Todos").map(c=>{const on=MC[c]!=null,v=on?MC[c]:margin;
+  function renderMC(){if(!mcb)return;mcb.innerHTML=cats.filter(c=>c!=="Todos").concat(P.some(p=>p.moi)?["Moissanite"]:[]).map(c=>{const on=MC[c]!=null,v=on?MC[c]:margin;
     return `<div class="mcrow"><label class="mcchk"><input type="checkbox" data-mcon="${esc(c)}" ${on?"checked":""}> ${esc(c)}</label><input type="range" min="50" max="500" step="10" value="${v}" data-mc="${esc(c)}" ${on?"":"disabled"} aria-label="Margem de ${esc(c)}"><span class="mcv">${on?"+"+v+"%":"igual à geral"}</span></div>`}).join("")}
   if(mcb){renderMC();
     mcb.addEventListener("input",e=>{const c=e.target.dataset.mc;if(c==null)return;MC[c]=+e.target.value;e.target.nextElementSibling.textContent="+"+MC[c]+"%";updLink();renderGrid();renderCart()});
@@ -177,7 +178,7 @@ function manResults(){
   if(q.length<2){box.innerHTML='<p class="kb-msg">Digite pelo menos 2 letras do nome, cor ou código da peça.</p>';return}
   const L=P.filter(p=>q.split(/\s+/).every(w=>(p.s+" "+norm(p.ref)).includes(w))).slice(0,12);
   if(!L.length){box.innerHTML='<p class="kb-msg">Nenhuma peça encontrada.</p>';return}
-  box.innerHTML=L.map(p=>{const c=p.colors[0];loadChunk(c.ch);return `<button class="mres" data-mp="${p.id}"><img class="th" data-k="${c.k}" alt=""><span><b>${esc(p.name)}</b><small>REF ${esc(p.ref)} · ${brl(price(c.price,p.cat))}</small></span></button>`}).join("");
+  box.innerHTML=L.map(p=>{const c=p.colors[0];loadChunk(c.ch);return `<button class="mres" data-mp="${p.id}"><img class="th" data-k="${c.k}" alt=""><span><b>${esc(p.name)}</b><small>REF ${esc(p.ref)} · ${brl(price(c.price,mk(p)))}</small></span></button>`}).join("");
   box.querySelectorAll("img[data-k]").forEach(im=>{fill(im);im.classList.add("ok")});
 }
 function manSel(){
@@ -188,7 +189,7 @@ function manSel(){
     ${p.colors.length>1?`<label>Cor <select id="mancor">${p.colors.map((x,j)=>`<option value="${j}" ${j===MSEL.ci?"selected":""}>${esc(x.c||"Padrão")}</option>`).join("")}</select></label>`:(c.c?`<small>Cor: ${esc(c.c)}</small>`:"")}
     ${c.sizes.length?`<label>${c.ot?"Letra":"Aro"} <select id="manaro"><option value="">Escolha</option>${c.sizes.map(s=>`<option ${s===MSEL.aro?"selected":""}>${s}</option>`).join("")}${c.ot?"":`<option value="?" ${MSEL.aro==="?"?"selected":""}>Não tenho certeza</option>`}</select></label>`:""}
     <label>Qtd <input id="manqtd" type="number" min="1" max="99" value="${MSEL.qtd}"></label>
-    <span class="mpr">${brl(price(c.price,p.cat))} cada</span>
+    <span class="mpr">${brl(price(c.price,mk(p)))} cada</span>
     <button class="add" id="manadd">Adicionar ao pedido</button></div>`;
 }
 function manDraft(){
@@ -210,7 +211,7 @@ document.addEventListener("click",e=>{
   else if(t.id==="manadd"&&MSEL){
     const p=P[MSEL.pid],c=p.colors[MSEL.ci];const q=document.getElementById("manqtd");if(q)MSEL.qtd=Math.max(1,Math.min(99,+q.value||1));
     if(c.sizes.length&&!MSEL.aro){const s=document.getElementById("manaro");if(s){s.focus();s.classList.add("need");setTimeout(()=>s.classList.remove("need"),1500)}return}
-    MAN.push([p.ref,p.name,c.c,c.sizes.length?MSEL.aro:"",MSEL.qtd,price(c.price,p.cat),c.price]);MSEL=null;manSel();manDraft()}
+    MAN.push([p.ref,p.name,c.c,c.sizes.length?MSEL.aro:"",MSEL.qtd,price(c.price,mk(p)),c.price]);MSEL=null;manSel();manDraft()}
   else if(t.dataset.mdel!=null){MAN.splice(+t.dataset.mdel,1);manDraft()}
   else if(t.id==="mansave"&&MAN.length){
     t.disabled=true;t.textContent="Salvando…";
