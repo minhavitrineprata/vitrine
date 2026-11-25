@@ -10,6 +10,7 @@ window.LOJAS={
   "wolves":{"kh":"5462193cef1db6cc","nome":"Wolves Joias","wa":"5554996743927","m":300,"logo":"logos/wolves.jpg","cor":"#FFFFFF","texto":"#111111","botao":"#111111","botaoTexto":"#FFFFFF"},
   "baronesa":{"kh":"0e4b6b67d90a0d6f","nome":"Baronesa Prata","wa":"5515998388086","m":300,"logo":"logos/baronesa.jpg","cor":"#FEFEFE","texto":"#111111","botao":"#111111","botaoTexto":"#FFFFFF"},
   "mariaglam":{"kh":"9d2941e309a3f1c2","nome":"Maria Glam Semijoias","wa":"5551996344669","m":300,"logo":"logos/mariaglam.jpg","cor":"#FFFFFF","texto":"#8A5E14","botao":"#A8781E","botaoTexto":"#FFFFFF"},
+  "dani":{"kh":"4d74e8fa8c788c15","nome":"Pratas da Dani","wa":"5554997000676","m":300,"cor":"#0E0E0E","texto":"#FFFFFF","botao":"#0E0E0E","botaoTexto":"#FFFFFF"},
   "essenciale":{"kh":"ce4a9bf078971008","nome":"Essenciale","wa":"5554996031004","m":300,"logo":"logos/essenciale.jpg","cor":"#000000","texto":"#E2B45A","botao":"#E2B45A","botaoTexto":"#000000"}
 };
 window.DEMO=null;
