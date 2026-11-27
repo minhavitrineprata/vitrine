@@ -14,6 +14,7 @@ window.LOJAS={
   "verita":{"kh":"cd2d0eb54a937609","nome":"Verita Pratas","wa":"5554999619496","m":100,"logo":"logos/verita.jpg","cor":"#FFFFFF","texto":"#0E0E0E","botao":"#0E0E0E","botaoTexto":"#FFFFFF"},
   "sejaluz":{"kh":"9bd5383abac01df0","nome":"Joias Seja Luz","wa":"5511947849743","m":300,"logo":"logos/sejaluz.jpg","cor":"#FFFFFF","texto":"#1A1A1A","botao":"#1A1A1A","botaoTexto":"#FFFFFF"},
   "demo":{"kh":"0727ffa37c07626b","nome":"MARCA DEMONSTRAÇÃO","wa":"5554997067354","m":300,"cor":"#0E0E0E","texto":"#FFFFFF","botao":"#0E0E0E","botaoTexto":"#FFFFFF"},
+  "bibi":{"kh":"904951c4740991ee","nome":"Bibi Joias","wa":"5551995632718","m":300,"logo":"logos/bibi.jpg","cor":"#17030E","texto":"#D2BC8A","botao":"#17030E","botaoTexto":"#D2BC8A"},
   "essenciale":{"kh":"ce4a9bf078971008","nome":"Essenciale","wa":"5554996031004","m":300,"logo":"logos/essenciale.jpg","cor":"#000000","texto":"#E2B45A","botao":"#E2B45A","botaoTexto":"#000000"}
 };
 window.DEMO=null;
