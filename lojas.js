@@ -13,7 +13,7 @@ window.LOJAS={
   "dani":{"kh":"4d74e8fa8c788c15","nome":"Pratas da Dani","wa":"5554997000676","m":100,"cor":"#0E0E0E","texto":"#FFFFFF","botao":"#0E0E0E","botaoTexto":"#FFFFFF"},
   "verita":{"kh":"cd2d0eb54a937609","nome":"Verita Pratas","wa":"5554999619496","m":100,"logo":"logos/verita.jpg","cor":"#FFFFFF","texto":"#0E0E0E","botao":"#0E0E0E","botaoTexto":"#FFFFFF"},
   "sejaluz":{"kh":"9bd5383abac01df0","nome":"Joias Seja Luz","wa":"5511947849743","m":300,"logo":"logos/sejaluz.jpg","cor":"#FFFFFF","texto":"#1A1A1A","botao":"#1A1A1A","botaoTexto":"#FFFFFF"},
-  "demo":{"kh":"0727ffa37c07626b","nome":"MARCA DEMONSTRAÇÃO","wa":"5554996986596","m":300,"cor":"#0E0E0E","texto":"#FFFFFF","botao":"#0E0E0E","botaoTexto":"#FFFFFF"},
+  "demo":{"kh":"0727ffa37c07626b","nome":"MARCA DEMONSTRAÇÃO","wa":"5554997067354","m":300,"cor":"#0E0E0E","texto":"#FFFFFF","botao":"#0E0E0E","botaoTexto":"#FFFFFF"},
   "essenciale":{"kh":"ce4a9bf078971008","nome":"Essenciale","wa":"5554996031004","m":300,"logo":"logos/essenciale.jpg","cor":"#000000","texto":"#E2B45A","botao":"#E2B45A","botaoTexto":"#000000"}
 };
 window.DEMO=null;
